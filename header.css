@@ -1,0 +1,79 @@
+/* -------------------------------------------
+   Header Styles (header.css)
+------------------------------------------- */
+header,
+#header {
+  width: 100%;
+  height: 80px;
+  background-color: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 16px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  user-select: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* 医院ロゴ・ブランド (左側カレンダー幅450pxと一致) */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 450px;
+  flex-shrink: 0;
+}
+
+.header-logo-icon {
+  width: 38px;
+  height: 38px;
+  background-color: #0284c7;
+  color: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.header-logo-text {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.header-logo-text span {
+  color: #0284c7;
+}
+
+/* カレンダーで選択した日付のヘッダー表示 (予約グリッドの左端と完全に一致) */
+.header-date-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 6px 28px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.header-selected-date {
+  font-size: 2.0rem;
+  font-weight: 800;
+  color: #123891;
+  letter-spacing: 0.02em;
+}
+
+.header-selected-date .day-sun {
+  color: #dc2626;
+}
+
+.header-selected-date .day-sat {
+  color: #0284c7;
+}

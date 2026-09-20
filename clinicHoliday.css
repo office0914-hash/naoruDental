@@ -1,0 +1,289 @@
+/* -------------------------------------------
+   Clinic Holiday Modal Styles (clinicHoliday.css)
+------------------------------------------- */
+
+/* Modal Overlay Background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Modal Window Container */
+.modal-container {
+  width: 90%;
+  max-width: 580px;
+  max-height: 90vh;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.98);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+}
+
+.modal-overlay.show .modal-container {
+  transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 18px 24px 14px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* タイトル直下の説明文 */
+.modal-header-desc {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* -------------------------------------------
+   Modal Calendar Component
+------------------------------------------- */
+.modal-cal-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.modal-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-cal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.modal-cal-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-cal-btn {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.modal-cal-btn:hover {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+/* 曜日ボタングリッド */
+.modal-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* 曜日ボタン */
+.modal-weekday-btn {
+  padding: 8px 0;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.modal-weekday-btn:hover {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.modal-weekday-btn.sun {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.modal-weekday-btn.sat {
+  color: #0284c7;
+  border-color: #bae6fd;
+}
+
+/* 日付グリッド */
+.modal-cal-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+/* 日付セル */
+.modal-cal-cell {
+  aspect-ratio: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  user-select: none;
+}
+
+/* 日曜日・土曜日の文字色 */
+.modal-cal-cell.sun:not(.empty):not(.closed) {
+  color: #dc2626;
+}
+
+.modal-cal-cell.sat:not(.empty):not(.closed) {
+  color: #0284c7;
+}
+
+.modal-cal-cell:hover:not(.empty) {
+  border-color: #ef4444;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
+}
+
+.modal-cal-cell.empty {
+  cursor: default;
+  background: transparent;
+  border-color: transparent;
+}
+
+/* 休診日セル（赤色系ハイライト） */
+.modal-cal-cell.closed {
+  background-color: #fee2e2 !important;
+  color: #dc2626 !important;
+  border-color: #f87171 !important;
+  font-weight: 800;
+}
+
+/* Today highlight */
+.modal-cal-cell.today {
+  box-shadow: 0 0 0 2px #84cc16;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 14px 24px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 「保存してカレンダーに反映」ボタン */
+.modal-btn-primary {
+  background-color: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.modal-btn-primary:hover {
+  background-color: #0369a1;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+  transform: translateY(-1px);
+}
+
+.modal-btn-primary:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>なおる歯科 - 予約システム</title>
+  <link rel="stylesheet" href="header.css">
+  <link rel="stylesheet" href="calendar.css">
+  <link rel="stylesheet" href="reservationGrid.css">
+  <link rel="stylesheet" href="systemSettings.css">
+  <link rel="stylesheet" href="clinicHoliday.css">
+  <link rel="stylesheet" href="appNew.css">
+  
+  <!-- sql.js (Pure JS / Offline & File Protocol Ready) -->
+  <script src="lib/sql-asm.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden; /* 全画面フィット・不要なスクロールを排除 */
+      background-color: #ffffff;
+      font-family: sans-serif;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Main workspace beneath header (画面いっぱいにフィット) */
+    .app-body {
+      width: 100%;
+      height: calc(100vh - 80px);
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      padding: 10px 16px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- メインヘッダー：選択日付を表示 -->
+  <header id="header">
+    <div class="header-brand">
+      <div class="header-logo-icon">🦷</div>
+      <div class="header-logo-text">なおる<span>歯科</span> 予約管理</div>
+    </div>
+
+    <!-- カレンダー選択日付の表示ボックス -->
+    <div class="header-date-box">
+      <div id="headerSelectedDate" class="header-selected-date">
+        <!-- JSで選択した日付がリアルタイム表示されます -->
+      </div>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- 左側：カレンダー群 (450px幅・上下2連) -->
+    <div class="calendars-sidebar">
+      <div id="calendar" class="calendar-container"></div>
+      <div id="calendar-next" class="calendar-container"></div>
+    </div>
+
+    <!-- 中央：予約グリッド (横5列 × 縦19行) -->
+    <div id="reservationGrid" class="reservation-grid-container"></div>
+
+    <!-- 右側：systemSettings (280px幅) -->
+    <div id="systemSettings" class="system-settings">
+      <button type="button" id="btnHolidaySettings" class="settings-btn">
+        📅 休診日 設定
+      </button>
+    </div>
+  </div>
+
+  <!-- 操作開始時の自動全画面化 & 右クリック無効化スクリプト -->
+  <script>
+    // 右クリック禁止
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // 画面上で操作（クリック・タッチ・キー入力）が行われた瞬間に全画面化を実行
+    const triggerFullscreen = () => {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+        const docEl = document.documentElement;
+        const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+        if (requestFs) {
+          requestFs.call(docEl).catch(err => {
+            // ユーザー操作前など許可されない環境でのエラー抑制
+          });
+        }
+      }
+    };
+
+    ['click', 'pointerdown', 'mousedown', 'keydown', 'touchstart'].forEach(eventType => {
+      document.addEventListener(eventType, triggerFullscreen, { passive: true });
+    });
+  </script>
+
+  <!-- Database, Calendar, Grid & Modal Scripts -->
+  <script src="db.js"></script>
+  <script src="calendar.js"></script>
+  <script src="reservationGrid.js"></script>
+  <script src="clinicHoliday.js"></script>
+  <script src="appNew.js"></script>
+</body>
+</html>

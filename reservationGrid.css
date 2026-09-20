@@ -1,0 +1,187 @@
+/* -------------------------------------------
+   Reservation Grid Styles (reservationGrid.css)
+------------------------------------------- */
+.reservation-grid-container {
+  flex: 1;
+  min-width: 600px;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-sizing: border-box;
+  margin: 0 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  user-select: none;
+}
+
+.grid-table-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  background-color: #ffffff;
+}
+
+/* 5-Column Grid Table */
+.grid-table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.grid-table th {
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 2px 4px;
+  line-height: 1.2;
+  text-align: center;
+  border: 1px solid #cbd5e1;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 24px;
+}
+
+/* 1列目（時間列ヘッダー）：チェア列の約1/3幅 */
+.grid-table th:first-child {
+  width: 70px;
+  font-size: 0.82rem;
+  padding: 2px 2px;
+}
+
+.grid-table td {
+  border: 1px solid #e2e8f0;
+  padding: 4px 8px;
+  font-size: 0.88rem;
+  color: #1e293b;
+  text-align: center;
+  transition: all 0.12s ease;
+  position: relative;
+  background-color: #ffffff;
+}
+
+/* 1列目（時間列ボディ）：初期状態 */
+.grid-table td.time-col {
+  width: 70px;
+  background-color: #f8fafc;
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.85rem;
+  padding: 4px 2px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+/* -------------------------------------------
+   時間表示の強いネオン調スタイル (Neon Text Glow)
+------------------------------------------- */
+
+/* 1. ポインタ移動（ホバー）時の時間表示：ネオン文字発光 */
+.grid-table tbody tr:hover td.time-col {
+  color: #16a34a !important; /* 鮮やかなネオングリーン */
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 2px #22c55e, 0 0 6px #4ade80, 0 0 12px #86efac;
+}
+
+/* 2. クリック選択されたグリッドの時間表示：強いネオン文字発光 */
+.grid-table tbody tr:has(td.selected) td.time-col,
+.grid-table tbody tr.selected-row td.time-col {
+  color: #15803d !important; /* 強いエメラルドネオン */
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 3px #16a34a, 0 0 8px #22c55e, 0 0 16px #4ade80, 0 0 24px #86efac;
+}
+
+/* マウス直下の予約枠セルのホバー効果：カレンダーと同じ薄い緑色 (#dcfce7) */
+.grid-table td.grid-slot-cell:hover {
+  background-color: #dcfce7 !important;
+  border-color: #22c55e;
+  cursor: pointer;
+}
+
+/* 空グリッドにポインタが移動した際、「+」（ライム色・Bold）を表示 */
+.grid-table td.grid-slot-cell:not(.booked):hover::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #65a30d; /* はっきりと視認性の高いライムグリーン */
+  font-weight: 900;
+  font-size: 1.7rem;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(101, 163, 13, 0.25);
+}
+
+/* 選択された枠：背景色は維持し、ボーダー枠のみネオン風に発光 */
+.grid-table td.grid-slot-cell.selected {
+  outline: 2.5px solid #22c55e !important;
+  outline-offset: -2.5px;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.85), inset 0 0 8px rgba(34, 197, 94, 0.4) !important;
+  z-index: 4;
+}
+
+/* 予約が入っている枠のスタイル */
+.grid-table td.grid-slot-cell.booked {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+  cursor: pointer;
+  border-left: 3px solid #f59e0b;
+}
+
+.grid-table td.grid-slot-cell.booked:hover {
+  background-color: #fde68a !important;
+}
+
+/* -------------------------------------------
+   担当行（1行）: 枠と行の高さをぴったりコンパクトに
+------------------------------------------- */
+.staff-row td {
+  background-color: #f8fafc;
+  border-bottom: 2px solid #cbd5e1;
+  padding: 1px 2px !important;
+  height: 24px;
+}
+
+.staff-row:hover td {
+  background-color: #f1f5f9 !important;
+}
+
+.staff-label-col {
+  width: 70px;
+  font-weight: 800;
+  color: #334155;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.staff-cell {
+  padding: 1px 2px !important;
+}
+
+.staff-input {
+  width: 100%;
+  height: 22px;
+  padding: 0 2px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background-color: #ffffff;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.staff-input:focus {
+  outline: none;
+  border-color: #22c55e;
+}
