@@ -13,13 +13,14 @@
             ],
             "isBackground": true,
             "problemMatcher": {
+                "owner": "custom",
                 "pattern": {
                     "regexp": "^$"
                 },
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": ".*",
-                    "endsPattern": "Server running at .*"
+                    "endsPattern": ".*Server running at .*"
                 }
             },
             "presentation": {

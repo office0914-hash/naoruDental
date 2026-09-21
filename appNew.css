@@ -142,65 +142,13 @@
   border: 1px solid #bbf7d0;
 }
 
-/* 患者情報表示枠 (カード) */
-.patient-info-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.patient-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background-color: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #334155;
-}
-
-.patient-card-title-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.patient-card-icon {
-  font-size: 1rem;
-}
-
-.patient-card-title {
-  letter-spacing: 0.02em;
-}
-
-.patient-card-meta {
-  display: none;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #0369a1;
-  background-color: #e0f2fe;
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid #bae6fd;
-}
-
-.patient-card-body {
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* 患者情報横並びレイアウト */
-.patient-card-body.patient-card-row {
+/* 患者情報 入力行 (横並び) */
+.patient-form-row {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .form-group-chartno {
@@ -218,47 +166,7 @@
   min-width: 140px;
 }
 
-/* 処置内容枠 (カード) */
-.treatment-info-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.treatment-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background-color: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: #334155;
-}
-
-.treatment-card-title-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.treatment-card-icon {
-  font-size: 1rem;
-}
-
-.treatment-card-title {
-  letter-spacing: 0.02em;
-}
-
-.treatment-card-body {
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-}
-
+/* 処置内容 入力行 */
 .form-group-treatment {
   width: 100%;
 }
@@ -322,9 +230,10 @@
 .patient-candidates-wrapper {
   margin-top: 2px;
   background-color: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
   animation: fadeInDown 0.15s ease-out;
 }
 
@@ -523,5 +432,82 @@
 }
 
 .btn-submit:active {
+  transform: translateY(0);
+}
+
+/* ===================================================
+   内容変更モーダル専用スタイル (Edit Modal)
+   =================================================== */
+
+/* ヘッダーカラー (シアン・ブルー系グラデーション) */
+.app-modal-header.edit-modal-header {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+}
+
+/* 処置内容 & 予約枠の長さ 横並びレイアウト */
+.edit-treatment-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.edit-treatment-row .form-group-treatment {
+  flex: 1 1 auto;
+}
+
+.edit-treatment-row .form-group-duration {
+  flex: 0 0 145px;
+  min-width: 135px;
+}
+
+/* 予約枠数プルダウン */
+.form-select-duration {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230284c7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px !important;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #f0f9ff;
+  border-color: #bae6fd;
+  cursor: pointer;
+}
+
+.form-select-duration:focus {
+  border-color: #0284c7;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+}
+
+/* 内容変更モーダル フッター (左にキャンセル、右詰めに確定) */
+.app-modal-footer.edit-modal-footer {
+  justify-content: space-between;
+}
+
+.btn-edit-submit {
+  padding: 7px 22px;
+  background-color: #0284c7;
+  border: 1px solid #0369a1;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+  transition: all 0.15s;
+}
+
+.btn-edit-submit:hover {
+  background-color: #0369a1;
+  box-shadow: 0 4px 8px rgba(2, 132, 199, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-edit-submit:active {
   transform: translateY(0);
 }

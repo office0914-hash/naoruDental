@@ -16,7 +16,8 @@
   width: 100vw;
   height: 100vh;
   z-index: 9998;
-  background: rgba(15, 23, 42, 0.08); /* ほんのり背景を落ち着かせる */
+  background: rgba(15, 23, 42, 0.08);
+  /* ほんのり背景を落ち着かせる */
   backdrop-filter: blur(1px);
   opacity: 0;
   visibility: hidden;
@@ -45,9 +46,9 @@
   visibility: hidden;
   transform: scale(0.94) translateY(-6px);
   transform-origin: top left;
-  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
-              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
-              visibility 0.18s ease;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.18s ease;
   user-select: none;
 }
 
@@ -171,9 +172,11 @@
   background: #ecfdf5;
   color: #059669;
 }
+
 .lca-item-new:hover {
   background: #f0fdf4;
 }
+
 .lca-item-new:hover .lca-item-label {
   color: #047857;
 }
@@ -183,9 +186,11 @@
   background: #eff6ff;
   color: #2563eb;
 }
+
 .lca-item-datetime:hover {
   background: #f0f7ff;
 }
+
 .lca-item-datetime:hover .lca-item-label {
   color: #1d4ed8;
 }
@@ -195,9 +200,11 @@
   background: #fffbeb;
   color: #d97706;
 }
+
 .lca-item-edit:hover {
   background: #fefce8;
 }
+
 .lca-item-edit:hover .lca-item-label {
   color: #b45309;
 }
@@ -208,13 +215,16 @@
   border-top: 1px solid #f1f5f9;
   padding-top: 10px;
 }
+
 .lca-item-cancel .lca-item-icon {
   background: #fef2f2;
   color: #dc2626;
 }
+
 .lca-item-cancel:hover {
   background: #fef2f2;
 }
+
 .lca-item-cancel:hover .lca-item-label {
   color: #b91c1c;
 }
@@ -242,22 +252,26 @@
     transform: scale(1);
     filter: blur(0px);
   }
+
   20% {
     opacity: 0.85;
     background-color: #fee2e2 !important;
     border-color: #fca5a5 !important;
   }
+
   50% {
     opacity: 0.5;
     background-color: #fef2f2 !important;
     border-color: #fecaca !important;
     transform: scale(0.98);
   }
+
   75% {
     opacity: 0.2;
     transform: scale(0.95);
     filter: blur(0.6px);
   }
+
   100% {
     opacity: 0;
     transform: scale(0.92);
@@ -284,8 +298,8 @@
   width: 100vw;
   height: 100vh;
   z-index: 10001;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(3px);
+  background: rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(1.5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -408,7 +422,8 @@
 }
 
 .lca-cancel-time {
-  margin-left: 10px; /* 少し離して配置 */
+  margin-left: 10px;
+  /* 少し離して配置 */
   font-weight: 700;
   color: #0284c7;
 }
@@ -416,7 +431,8 @@
 /* フッター：枠線なしで最下段に左詰め「いいえ」、右詰め「はい」 */
 .lca-cancel-modal-footer {
   display: flex;
-  justify-content: space-between; /* 左詰めと右詰め */
+  justify-content: space-between;
+  /* 左詰めと右詰め */
   align-items: center;
   width: 100%;
   margin-top: 12px;
@@ -461,6 +477,7 @@
   transform: translateY(-1px);
 }
 
-.lca-btn-yes:active, .lca-btn-no:active {
+.lca-btn-yes:active,
+.lca-btn-no:active {
   transform: translateY(0);
 }

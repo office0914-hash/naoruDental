@@ -209,6 +209,9 @@ class ReservationGrid {
   _createSlotCell(dateStr, rowIndex, colIndex, time, dayReservations) {
     const tdSlot = document.createElement('td');
     tdSlot.className = 'grid-slot-cell';
+    if (this.columns[colIndex].id === 'sub') {
+      tdSlot.classList.add('slot-sub');
+    }
     tdSlot.dataset.date = dateStr;
     tdSlot.dataset.row = rowIndex;
     tdSlot.dataset.col = colIndex;
@@ -253,6 +256,14 @@ class ReservationGrid {
 
     const groupId = booking.group_id || `${booking.chart_no || booking.patient_name || 'booking'}_${dateStr}_col${colIndex}`;
     tdSlot.dataset.bookingGroup = groupId;
+
+    // パイロットグリッドにキープ中の元予約であれば点線ボーダーを付与
+    if (window.pilotGridManager && window.pilotGridManager.hasBooking()) {
+      const held = window.pilotGridManager.heldBooking;
+      if (held.date === dateStr && (held.groupId === groupId || (held.chartNo && held.chartNo === booking.chart_no))) {
+        tdSlot.classList.add('card-source-dotted');
+      }
+    }
 
     // ホバー連動イベント
     tdSlot.addEventListener('mouseenter', () => {

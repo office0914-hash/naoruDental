@@ -355,15 +355,19 @@ class LeftClickActions {
       if (!treatment) treatment = dbBooking.menu_name || '';
     }
 
+    const startTimeStr = (targetCardCell && targetCardCell.dataset.time) ? targetCardCell.dataset.time : timeStr;
+
     return {
       date: dateStr,
-      time: timeStr,
+      time: startTimeStr,
       unit: unitStr,
       groupId: groupId,
       chartNo: chartNo || '',
       patientName: patientName || '患者名未設定',
       treatment: treatment || '',
       durationMin: slotCount * 30,
+      slotCount: slotCount,
+      targetCardCell: targetCardCell,
       raw: dbBooking
     };
   }
@@ -401,21 +405,35 @@ class LeftClickActions {
 
   // --- アクションごとのハンドラー ---
 
-  // 1. 新規予約
+  // 1. 新規予約 (パイロットグリッドへキープ)
   onNewAppointment(data, cell) {
-    // モーダルは出さず、待機状態とする
-    console.log('[LeftClickActions] 新規予約がクリックされました:', data);
-    this.showFeedbackToast(`【新規予約】 ${data.patientName}`);
+    console.log('[LeftClickActions] 新規予約 (パイロットグリッドへキープ):', data);
+    if (window.pilotGridManager && typeof window.pilotGridManager.setBooking === 'function') {
+      window.pilotGridManager.setBooking(data, cell);
+      this.showFeedbackToast(`【新規予約】 ${data.patientName} をパイロットグリッドにキープしました`);
+    } else {
+      this.showFeedbackToast(`【新規予約】 ${data.patientName}`);
+    }
   }
 
-  // 2. 日時変更
+  // 2. 日時変更 (パイロットグリッドへ移動キープ: 元予約を消去して移動)
   onDateTimeChange(data, cell) {
-    this.showFeedbackToast(`【日時変更】 ${data.patientName} (${data.date} ${data.time}) の移動・変更モードです`);
+    console.log('[LeftClickActions] 日時変更 (パイロットグリッドへ移動キープ):', data);
+    if (window.pilotGridManager && typeof window.pilotGridManager.setBooking === 'function') {
+      window.pilotGridManager.setBooking(data, cell, 'move');
+      this.showFeedbackToast(`【日時変更】 ${data.patientName} の移動先枠を選択してください`);
+    } else {
+      this.showFeedbackToast(`【日時変更】 ${data.patientName} (${data.date} ${data.time}) の移動モードです`);
+    }
   }
 
   // 3. 内容変更
   onEditDetails(data, cell) {
-    this.showFeedbackToast(`【内容変更】 ${data.patientName} のカルテ・処置内容変更を開きます`);
+    if (window.appointmentEditModal && typeof window.appointmentEditModal.open === 'function') {
+      window.appointmentEditModal.open(data, cell);
+    } else {
+      this.showFeedbackToast(`【内容変更】 ${data.patientName} のカルテ・処置内容変更を開きます`);
+    }
   }
 
   // 4. キャンセル

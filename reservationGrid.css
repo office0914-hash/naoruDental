@@ -106,6 +106,29 @@
 }
 
 /* --------------------------------------------------------------------------
+   2.1 予備枠 (淡い緑色の斜線パターン)
+   -------------------------------------------------------------------------- */
+.grid-table td.grid-slot-cell.slot-sub:not(.booked),
+.grid-table td.grid-slot-cell[data-col="4"]:not(.booked) {
+  background-color: #f7fee7;
+  background-image: repeating-linear-gradient(-45deg,
+      rgba(216, 247, 231, 0.22),
+      rgba(193, 225, 200, 0.22) 4.5px,
+      transparent 4.5px,
+      transparent 9.5px);
+}
+
+.grid-table td.grid-slot-cell.slot-sub:not(.booked):hover,
+.grid-table td.grid-slot-cell[data-col="4"]:not(.booked):hover {
+  background-color: #dcfce7 !important;
+  background-image: repeating-linear-gradient(-45deg,
+      rgba(34, 197, 94, 0.3),
+      rgba(34, 197, 94, 0.3) 4.5px,
+      transparent 4.5px,
+      transparent 9.5px) !important;
+}
+
+/* --------------------------------------------------------------------------
    3. 空き枠ホバー & ドラッグ範囲選択ハイライト
    -------------------------------------------------------------------------- */
 .grid-table td.grid-slot-cell:hover {
@@ -178,6 +201,23 @@
   background: linear-gradient(135deg, #bbf7d0 0%, #bae6fd 100%);
   border-color: #4ade80;
   border-left-color: #15803d;
+}
+
+/* 新規予約操作中：パイロットグリッドにキープされた元セルの点線ボーダー */
+.grid-table td.grid-slot-cell.card-source-dotted::before {
+  border: 2px dashed #0284c7 !important;
+  border-left: 3.5px dashed #0284c7 !important;
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.6) 0%, rgba(224, 242, 254, 0.6) 100%) !important;
+  animation: sourceDottedPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes sourceDottedPulse {
+  0%, 100% {
+    border-color: #0284c7 !important;
+  }
+  50% {
+    border-color: #38bdf8 !important;
+  }
 }
 
 /* 複数枠予約：先頭枠（上の2角のみ丸め、下は直結） */
@@ -263,7 +303,8 @@
 
 .booked-patient-name {
   font-size: 0.98rem;
-  font-weight: 400; /* レギュラー（太字を解除し字潰れ防止） */
+  font-weight: 400;
+  /* レギュラー（太字を解除し字潰れ防止） */
   color: #0f172a;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -283,7 +324,8 @@
 
 .booked-treatment {
   font-size: 0.78rem;
-  font-weight: 400; /* レギュラー（太字を解除） */
+  font-weight: 400;
+  /* レギュラー（太字を解除） */
   color: #047857;
   background-color: #ecfdf5;
   padding: 0px 5px;
@@ -421,8 +463,15 @@
 }
 
 @keyframes badgePop {
-  from { transform: translate(10px, 10px) scale(0.85); opacity: 0.5; }
-  to { transform: translate(10px, 10px) scale(1); opacity: 1; }
+  from {
+    transform: translate(10px, 10px) scale(0.85);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: translate(10px, 10px) scale(1);
+    opacity: 1;
+  }
 }
 
 .drag-indicator-badge.badge-warning {
@@ -459,7 +508,7 @@
   width: 100vw;
   height: 100vh;
   background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(1.5px);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -487,8 +536,15 @@
 }
 
 @keyframes modalScaleIn {
-  from { transform: scale(0.94) translateY(-10px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+  from {
+    transform: scale(0.94) translateY(-10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .time-change-modal-header {
@@ -619,8 +675,13 @@
   margin-bottom: 3px;
 }
 
-.before-box .compare-label { color: #475569; }
-.after-box .compare-label { color: #059669; }
+.before-box .compare-label {
+  color: #475569;
+}
+
+.after-box .compare-label {
+  color: #059669;
+}
 
 .compare-unit {
   font-size: 0.92rem;

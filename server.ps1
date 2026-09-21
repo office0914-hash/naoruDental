@@ -4,10 +4,12 @@ if (-not $baseDir) {
     $baseDir = (Get-Location).Path
 }
 
-# 既に起動している場合は正常終了（二重起動防止）
+# 既に起動している場合は即時検知させて維持
 $existing = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
 if ($existing) {
-    Write-Output "Server running at http://localhost:$port/ (Already running)"
+    [Console]::WriteLine("Server running at http://localhost:$port/ (Already running)")
+    [Console]::Out.Flush()
+    while ($true) { Start-Sleep -Seconds 3600 }
     exit 0
 }
 
@@ -20,7 +22,8 @@ $listener.Prefixes.Add("http://127.0.0.1:$port/")
 try {
     $listener.Start()
     [System.IO.File]::WriteAllText((Join-Path $baseDir "server_status.log"), "RUNNING: $(Get-Date)")
-    Write-Output "Server running at http://localhost:$port/ (Root: $baseDir)"
+    [Console]::WriteLine("Server running at http://localhost:$port/ (Root: $baseDir)")
+    [Console]::Out.Flush()
     
     while ($listener.IsListening) {
         $context = $listener.GetContext()
