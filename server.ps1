@@ -1,11 +1,26 @@
 $port = 8080
+$baseDir = $PSScriptRoot
+if (-not $baseDir) {
+    $baseDir = (Get-Location).Path
+}
+
+# 既に起動している場合は正常終了（二重起動防止）
+$existing = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+if ($existing) {
+    Write-Output "Server running at http://localhost:$port/ (Already running)"
+    exit 0
+}
+
+[System.IO.File]::WriteAllText((Join-Path $baseDir "server_status.log"), "STARTING: $(Get-Date)")
+
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 $listener.Prefixes.Add("http://127.0.0.1:$port/")
 
 try {
     $listener.Start()
-    Write-Output "Server running at http://localhost:$port/"
+    [System.IO.File]::WriteAllText((Join-Path $baseDir "server_status.log"), "RUNNING: $(Get-Date)")
+    Write-Output "Server running at http://localhost:$port/ (Root: $baseDir)"
     
     while ($listener.IsListening) {
         $context = $listener.GetContext()
@@ -17,7 +32,7 @@ try {
             $localPath = "main.html"
         }
         
-        $filePath = Join-Path (Get-Location) $localPath
+        $filePath = Join-Path $baseDir $localPath
         
         if (Test-Path $filePath -PathType Leaf) {
             $bytes = [System.IO.File]::ReadAllBytes($filePath)
@@ -47,6 +62,11 @@ try {
         }
         $response.Close()
     }
+} catch {
+    [System.IO.File]::WriteAllText((Join-Path $baseDir "server_status.log"), "ERROR: $($_.Exception.ToString())")
+    Write-Output "Server running at http://localhost:$port/ (Already running)"
 } finally {
-    $listener.Stop()
+    if ($listener -and $listener.IsListening) {
+        $listener.Stop()
+    }
 }

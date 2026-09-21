@@ -1,0 +1,466 @@
+/* ===================================================
+   Left Click Actions Menu Styles (leftClickActions.css)
+   なおる歯科 - 予約カード左クリック アクションメニュー
+   =================================================== */
+
+/* 予約カードをホバーしたときにクリック可能であることを明示 */
+.grid-slot-cell.booked {
+  cursor: pointer !important;
+}
+
+/* メニューの透明バックドロップ */
+.lca-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  background: rgba(15, 23, 42, 0.08); /* ほんのり背景を落ち着かせる */
+  backdrop-filter: blur(1px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.lca-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ポップアップメニュー本体 */
+.lca-popup-menu {
+  position: fixed;
+  z-index: 9999;
+  width: 230px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.18), 0 6px 12px -4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.94) translateY(-6px);
+  transform-origin: top left;
+  transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              visibility 0.18s ease;
+  user-select: none;
+}
+
+.lca-popup-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+}
+
+/* ヘッダー：選択された予約のサマリー情報 */
+.lca-menu-header {
+  padding: 9px 12px;
+  margin-bottom: 4px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.lca-header-patient {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.lca-header-chart {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.lca-header-time-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0284c7;
+}
+
+.lca-header-unit-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* メニューアイテム群 */
+.lca-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* 各メニュー項目 */
+.lca-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.lca-menu-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: translateX(3px);
+}
+
+.lca-menu-item:active {
+  transform: scale(0.98) translateX(2px);
+}
+
+/* アイコン用サークルバッジ */
+.lca-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.lca-menu-item:hover .lca-item-icon {
+  transform: scale(1.1);
+}
+
+/* 項目ラベル（フォント拡大） */
+.lca-item-label {
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+  flex-grow: 1;
+}
+
+/* 項目ごとのカラーテーマ */
+/* 1. 新規予約 (エメラルドグリーン) */
+.lca-item-new .lca-item-icon {
+  background: #ecfdf5;
+  color: #059669;
+}
+.lca-item-new:hover {
+  background: #f0fdf4;
+}
+.lca-item-new:hover .lca-item-label {
+  color: #047857;
+}
+
+/* 2. 日時変更 (ブルー) */
+.lca-item-datetime .lca-item-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.lca-item-datetime:hover {
+  background: #f0f7ff;
+}
+.lca-item-datetime:hover .lca-item-label {
+  color: #1d4ed8;
+}
+
+/* 3. 内容変更 (アンバー/オレンジ) */
+.lca-item-edit .lca-item-icon {
+  background: #fffbeb;
+  color: #d97706;
+}
+.lca-item-edit:hover {
+  background: #fefce8;
+}
+.lca-item-edit:hover .lca-item-label {
+  color: #b45309;
+}
+
+/* 4. キャンセル (ソフトレッド / 危険系) */
+.lca-item-cancel {
+  margin-top: 3px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+}
+.lca-item-cancel .lca-item-icon {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.lca-item-cancel:hover {
+  background: #fef2f2;
+}
+.lca-item-cancel:hover .lca-item-label {
+  color: #b91c1c;
+}
+
+/* 矢印アクセサリー */
+.lca-item-arrow {
+  font-size: 14px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-left: auto;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.lca-menu-item:hover .lca-item-arrow {
+  color: #64748b;
+  transform: translateX(2px);
+}
+
+/* ===================================================
+   予約カード消去フェードアウトアニメーション
+   =================================================== */
+@keyframes lcaDisappearFade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  20% {
+    opacity: 0.85;
+    background-color: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+  }
+  50% {
+    opacity: 0.5;
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+    transform: scale(0.98);
+  }
+  75% {
+    opacity: 0.2;
+    transform: scale(0.95);
+    filter: blur(0.6px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+    filter: blur(1.5px);
+  }
+}
+
+.lca-card-disappearing {
+  animation: lcaDisappearFade 4.0s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+  pointer-events: none !important;
+}
+
+.lca-card-disappearing * {
+  pointer-events: none !important;
+}
+
+/* ===================================================
+   予約キャンセル確認ダイアログ (モーダル)
+   =================================================== */
+.lca-cancel-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10001;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.lca-cancel-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lca-cancel-modal-container {
+  width: 90%;
+  max-width: 380px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.22), 0 10px 16px -6px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px 18px 24px;
+  transform: scale(0.92) translateY(8px);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.lca-cancel-modal-overlay.active .lca-cancel-modal-container {
+  transform: scale(1) translateY(0);
+}
+
+.lca-cancel-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.lca-cancel-icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.lca-cancel-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.lca-cancel-main-msg {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 12px 0;
+}
+
+.lca-cancel-target-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 13px 15px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lca-cancel-patient-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lca-cancel-chart-badge {
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+
+.lca-cancel-patient-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.lca-cancel-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #334155;
+  flex-wrap: wrap;
+}
+
+.lca-cancel-unit-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.lca-cancel-date {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.lca-cancel-time {
+  margin-left: 10px; /* 少し離して配置 */
+  font-weight: 700;
+  color: #0284c7;
+}
+
+/* フッター：枠線なしで最下段に左詰め「いいえ」、右詰め「はい」 */
+.lca-cancel-modal-footer {
+  display: flex;
+  justify-content: space-between; /* 左詰めと右詰め */
+  align-items: center;
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.lca-btn-no {
+  padding: 9px 24px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lca-btn-no:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.lca-btn-yes {
+  padding: 9px 26px;
+  border-radius: 8px;
+  border: none;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+  transition: all 0.15s ease;
+}
+
+.lca-btn-yes:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.lca-btn-yes:active, .lca-btn-no:active {
+  transform: translateY(0);
+}

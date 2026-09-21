@@ -6,5 +6,5 @@ echo   なおる歯科 予約システム - ローカルWebサーバー
 echo   アクセスURL: http://localhost:8080
 echo ===================================================
 echo サーバーを起動しています...
-powershell -ExecutionPolicy Bypass -File "%~dp0server.ps1"
+powershell -ExecutionPolicy Bypass -Command "& '%~dp0server.ps1'"
 pause

@@ -517,6 +517,26 @@ class DentalDatabase {
     return true;
   }
 
+  // 予約グループを削除
+  deleteReservationGroup(reservationItems) {
+    if (!reservationItems || reservationItems.length === 0) return false;
+    const ids = reservationItems.map(r => r.id).filter(Boolean);
+    this._deleteReservationsByIds(ids);
+    this.saveDatabase();
+    return true;
+  }
+
+  // 1件削除
+  deleteReservation(date, time, unit) {
+    const target = this.reservationsCache.find(r => r.date === date && r.time === time && r.unit === unit);
+    if (target) {
+      this._deleteReservationsByIds([target.id]);
+      this.saveDatabase();
+      return true;
+    }
+    return false;
+  }
+
   getStaffAssignment(dateStr, unitId) {
     if (this.db) {
       try {
