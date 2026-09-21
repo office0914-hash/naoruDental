@@ -9,7 +9,8 @@
             "request": "launch",
             "name": "localhost に対して Chrome を起動する",
             "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}",
+            "preLaunchTask": "Start Web Server"
         }
     ]
 }

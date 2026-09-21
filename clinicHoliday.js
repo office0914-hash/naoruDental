@@ -220,6 +220,15 @@ class ClinicHolidayModal {
 
       daysGrid.appendChild(cell);
     }
+
+    // 4. 常に6行固定（7列 × 6行 = 計42マス）になるよう末尾の空白セルを追加
+    const totalRendered = firstDayIndex + lastDate;
+    const targetTotalCells = 42; // 6週間固定で高さを完全一定化
+    for (let i = totalRendered; i < targetTotalCells; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.className = 'modal-cal-cell empty';
+      daysGrid.appendChild(emptyCell);
+    }
   }
 
   // 曜日ボタンクリック時の一括トグル

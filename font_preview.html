@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字フォント プレビュー比較 - なおる歯科</title>
+  <!-- Google Fonts: 候補フォントを一括読み込み -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow+Semi+Condensed:wght@600;700;800&family=Bebas+Neue&family=Chakra+Petch:wght@600;700&family=DM+Sans:wght@600;700;800&family=Inter:wght@600;700;800;900&family=JetBrains+Mono:wght@600;700;800&family=Montserrat:wght@600;700;800;900&family=Noto+Sans+JP:wght@500;700;900&family=Oswald:wght@500;600;700&family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Poppins:wght@600;700;800&family=Rajdhani:wght@600;700&family=Roboto+Condensed:wght@600;700;800&family=Roboto:wght@500;700;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      padding: 24px;
+    }
+
+    .header {
+      max-width: 1280px;
+      margin: 0 auto 24px auto;
+      background: #ffffff;
+      padding: 20px 28px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-desc {
+      font-size: 0.88rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .grid-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .font-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .font-card:hover {
+      transform: translateY(-2px);
+      border-color: #16a34a;
+      box-shadow: 0 10px 24px rgba(22, 163, 74, 0.12);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 10px;
+    }
+
+    .font-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .font-tag {
+      font-size: 0.76rem;
+      font-weight: 700;
+      background-color: #dcfce7;
+      color: #15803d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #bbf7d0;
+    }
+
+    .sample-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sample-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .sample-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .cal-number-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cal-cell-sample {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      font-weight: 800;
+      border-radius: 8px;
+    }
+
+    .cal-cell-today {
+      border: 2px solid #84cc16;
+      color: #1e293b;
+    }
+
+    .cal-cell-selected {
+      background-color: #86efac;
+      color: #065f46;
+    }
+
+    .time-slot-sample {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #16a34a;
+      letter-spacing: 0.04em;
+      text-shadow: 0 0 2px #22c55e, 0 0 6px #4ade80;
+      background: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .booking-sample {
+      background: linear-gradient(135deg, #dcfce7 0%, #e0f2fe 100%);
+      border-left: 3.5px solid #16a34a;
+      border: 1px solid #bae6fd;
+      border-left-width: 3.5px;
+      border-left-color: #16a34a;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-badge {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #0369a1;
+      background-color: #e0f2fe;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid #bae6fd;
+    }
+
+    .patient-name-sample {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .treatment-badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #047857;
+      background-color: #ecfdf5;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid #a7f3d0;
+    }
+
+    .digits-row {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #334155;
+      text-align: center;
+      background: #ffffff;
+      border: 1px dashed #cbd5e1;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    /* フォント定義 */
+    .font-oswald { font-family: 'Oswald', 'Noto Sans JP', sans-serif; }
+    .font-barlow-cond { font-family: 'Barlow Condensed', 'Noto Sans JP', sans-serif; }
+    .font-roboto-cond { font-family: 'Roboto Condensed', 'Noto Sans JP', sans-serif; }
+    .font-rajdhani { font-family: 'Rajdhani', 'Noto Sans JP', sans-serif; }
+    .font-inter { font-family: 'Inter', 'Noto Sans JP', sans-serif; font-feature-settings: "tnum"; }
+    .font-outfit { font-family: 'Outfit', 'Noto Sans JP', sans-serif; }
+    .font-bebas { font-family: 'Bebas Neue', 'Noto Sans JP', sans-serif; }
+    .font-jakarta { font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; }
+    .font-jetbrains { font-family: 'JetBrains Mono', 'Noto Sans JP', monospace; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <div class="header-title">🦷 数字フォント一覧プレビュー（StepByStep系を含む）</div>
+      <div class="header-desc">StepByStepでよく使われる縦長・スタイリッシュ系フォントを上位に掲載しています</div>
+    </div>
+  </div>
+
+  <div class="grid-container">
+
+    <!-- 1. Oswald -->
+    <div class="font-card font-oswald">
+      <div class="card-top">
+        <div class="font-name">1. Oswald</div>
+        <span class="font-tag">縦長・力強い・定番</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Barlow Condensed -->
+    <div class="font-card font-barlow-cond">
+      <div class="card-top">
+        <div class="font-name">2. Barlow Condensed</div>
+        <span class="font-tag">すっきり縦長・スマート</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Roboto Condensed -->
+    <div class="font-card font-roboto-cond">
+      <div class="card-top">
+        <div class="font-name">3. Roboto Condensed</div>
+        <span class="font-tag">高視認性・引き締まった数字</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Rajdhani -->
+    <div class="font-card font-rajdhani">
+      <div class="card-top">
+        <div class="font-name">4. Rajdhani</div>
+        <span class="font-tag">デジタル・スクエア系</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Outfit -->
+    <div class="font-card font-outfit">
+      <div class="card-top">
+        <div class="font-name">5. Outfit</div>
+        <span class="font-tag">幾何学・スタイリッシュ</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Inter -->
+    <div class="font-card font-inter">
+      <div class="card-top">
+        <div class="font-name">6. Inter</div>
+        <span class="font-tag">王道モダン・均整</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Bebas Neue -->
+    <div class="font-card font-bebas">
+      <div class="card-top">
+        <div class="font-name">7. Bebas Neue</div>
+        <span class="font-tag">超縦長・インパクト</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. JetBrains Mono -->
+    <div class="font-card font-jetbrains">
+      <div class="card-top">
+        <div class="font-name">8. JetBrains Mono</div>
+        <span class="font-tag">等幅・カルテ番号向け</span>
+      </div>
+      <div class="sample-section">
+        <div class="digits-row">0 1 2 3 4 5 6 7 8 9</div>
+        <div class="sample-row">
+          <span class="sample-label">カレンダー日付</span>
+          <div class="cal-number-box">
+            <div class="cal-cell-sample cal-cell-today">20</div>
+            <div class="cal-cell-sample cal-cell-selected">21</div>
+          </div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約時間列</span>
+          <div class="time-slot-sample">09:30</div>
+          <div class="time-slot-sample">14:00</div>
+        </div>
+        <div class="sample-row">
+          <span class="sample-label">予約グリッド枠</span>
+          <div class="booking-sample">
+            <span class="chart-badge">0042</span>
+            <span class="patient-name-sample">山田 太郎</span>
+            <span class="treatment-badge">定期検診</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -12,7 +12,7 @@ try {
         $request = $context.Request
         $response = $context.Response
         
-        $localPath = $request.Url.LocalPath.TrimStart('/')
+        $localPath = [System.Uri]::UnescapeDataString($request.Url.AbsolutePath).TrimStart('/')
         if ([string]::IsNullOrEmpty($localPath) -or $localPath -eq '/') {
             $localPath = "main.html"
         }
@@ -29,6 +29,7 @@ try {
                 ".css"  { "text/css; charset=utf-8" }
                 ".js"   { "application/javascript; charset=utf-8" }
                 ".json" { "application/json; charset=utf-8" }
+                ".csv"  { "text/csv; charset=utf-8" }
                 ".png"  { "image/png" }
                 ".jpg"  { "image/jpeg" }
                 ".svg"  { "image/svg+xml" }

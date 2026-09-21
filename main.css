@@ -1,0 +1,29 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* 全画面フィット・不要なスクロールを排除 */
+  background-color: #ffffff;
+  font-family: sans-serif;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main workspace beneath header (画面いっぱいにフィット) */
+.app-body {
+  width: 100%;
+  height: calc(100vh - 80px);
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 12px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}

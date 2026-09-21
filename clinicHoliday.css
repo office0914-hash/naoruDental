@@ -193,11 +193,13 @@
   border-color: #bae6fd;
 }
 
-/* 日付グリッド */
+/* 日付グリッド（常に6行固定で高さのブレを完全防止） */
 .modal-cal-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   gap: 6px;
+  min-height: 290px;
 }
 
 /* 日付セル */

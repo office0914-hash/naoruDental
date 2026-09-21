@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Web Server",
+            "type": "shell",
+            "command": "powershell -ExecutionPolicy Bypass -File \"${workspaceFolder}/server.ps1\"",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": "Server running at .*"
+                }
+            },
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        }
+    ]
+}
