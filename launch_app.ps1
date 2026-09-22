@@ -39,17 +39,28 @@ if (-not $isRunning) {
     }
 }
 
-# 3. Launch Microsoft Edge in App Mode (Dedicated window without URL bar or tabs)
-$edgePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft\Edge\Application\msedge.exe"
-if (-not (Test-Path $edgePath)) {
-    $edgePath = Join-Path $env:ProgramFiles "Microsoft\Edge\Application\msedge.exe"
+# 3. Launch Google Chrome in App Mode (Dedicated window without URL bar or tabs)
+$chromePath = Join-Path $env:ProgramFiles "Google\Chrome\Application\chrome.exe"
+if (-not (Test-Path $chromePath) -and ${env:ProgramFiles(x86)}) {
+    $chromePath = Join-Path ${env:ProgramFiles(x86)} "Google\Chrome\Application\chrome.exe"
 }
-if (-not (Test-Path $edgePath)) {
-    $edgePath = Join-Path $env:LocalAppData "Microsoft\Edge\Application\msedge.exe"
+if (-not (Test-Path $chromePath)) {
+    $chromePath = Join-Path $env:LocalAppData "Google\Chrome\Application\chrome.exe"
 }
 
-if (Test-Path $edgePath) {
-    Start-Process -FilePath $edgePath -ArgumentList "--app=$url"
+if (Test-Path $chromePath) {
+    Start-Process -FilePath $chromePath -ArgumentList "--app=$url"
 } else {
-    Start-Process $url
+    $edgePath = Join-Path ${env:ProgramFiles(x86)} "Microsoft\Edge\Application\msedge.exe"
+    if (-not (Test-Path $edgePath)) {
+        $edgePath = Join-Path $env:ProgramFiles "Microsoft\Edge\Application\msedge.exe"
+    }
+    if (-not (Test-Path $edgePath)) {
+        $edgePath = Join-Path $env:LocalAppData "Microsoft\Edge\Application\msedge.exe"
+    }
+    if (Test-Path $edgePath) {
+        Start-Process -FilePath $edgePath -ArgumentList "--app=$url"
+    } else {
+        Start-Process $url
+    }
 }

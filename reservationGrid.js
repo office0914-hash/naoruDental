@@ -49,6 +49,9 @@ class ReservationGrid {
       if (!this.isDragging) return;
       this.isDragging = false;
 
+      // ブロックモード中は新規予約モーダルを開かない
+      if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
+
       const minRow = Math.min(this.dragStartRow, this.dragCurrentRow);
       const maxRow = Math.max(this.dragStartRow, this.dragCurrentRow);
       const colIndex = this.dragColIndex;
@@ -59,13 +62,13 @@ class ReservationGrid {
       if (this.dragStartRow <= this.dragCurrentRow) {
         for (let r = this.dragStartRow; r <= this.dragCurrentRow; r++) {
           const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
-          if (slot && slot.classList.contains('booked')) break;
+          if (slot && (slot.classList.contains('booked') || slot.classList.contains('grid-slot-blocked'))) break;
           actualMax = r;
         }
       } else {
         for (let r = this.dragStartRow; r >= this.dragCurrentRow; r--) {
           const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
-          if (slot && slot.classList.contains('booked')) break;
+          if (slot && (slot.classList.contains('booked') || slot.classList.contains('grid-slot-blocked'))) break;
           actualMin = r;
         }
       }
@@ -74,7 +77,7 @@ class ReservationGrid {
       let startCell = null;
       for (let r = actualMin; r <= actualMax; r++) {
         const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
-        if (slot && !slot.classList.contains('booked')) {
+        if (slot && !slot.classList.contains('booked') && !slot.classList.contains('grid-slot-blocked')) {
           slotTimes.push(slot.dataset.time);
           if (!startCell) startCell = slot;
         }
@@ -212,6 +215,19 @@ class ReservationGrid {
     if (this.columns[colIndex].id === 'sub') {
       tdSlot.classList.add('slot-sub');
     }
+
+    // 休憩・診療外枠の背景パターン判定
+    const dayOfWeek = this.currentDate.getDay();
+    const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+    const isSaturday = dayOfWeek === 6;
+
+    const isWeekdayLunch = isWeekday && ['12:00', '12:30', '13:00'].includes(time);
+    const isSaturdayAfternoon = isSaturday && time >= '12:00';
+
+    if (isWeekdayLunch || isSaturdayAfternoon) {
+      tdSlot.classList.add('slot-break');
+    }
+
     tdSlot.dataset.date = dateStr;
     tdSlot.dataset.row = rowIndex;
     tdSlot.dataset.col = colIndex;
@@ -222,11 +238,28 @@ class ReservationGrid {
 
     if (booking) {
       this._setupBookedCell(tdSlot, booking, dateStr, rowIndex, colIndex, time, dayReservations);
+    } else {
+      // ブロック枠（予約不可）の判定
+      const isBlocked = window.dbManager && typeof window.dbManager.isSlotBlocked === 'function' &&
+        window.dbManager.isSlotBlocked(dateStr, time, this.columns[colIndex].label);
+
+      if (isBlocked) {
+        tdSlot.classList.add('grid-slot-blocked');
+        tdSlot.innerHTML = `
+          <div class="grid-blocked-content">
+            <span class="grid-blocked-lock-icon">🔒</span>
+          </div>
+        `;
+        tdSlot.title = 'ブロック枠';
+      }
     }
 
     // 空き枠ドラッグ範囲選択イベント
     tdSlot.onmousedown = (e) => {
-      if (e.button !== 0 || booking) return;
+      // ブロックモード中、または予約済み枠、またはブロック枠の場合は通常予約ドラッグを開始しない
+      if (e.button !== 0 || booking || tdSlot.classList.contains('grid-slot-blocked')) return;
+      if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
+
       e.preventDefault();
       this.isDragging = true;
       this.dragStartRow = rowIndex;
@@ -238,6 +271,7 @@ class ReservationGrid {
 
     tdSlot.onmouseenter = () => {
       if (!this.isDragging) return;
+      if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
       if (colIndex !== this.dragColIndex) return;
       this.dragCurrentRow = rowIndex;
       this.updateDragSelection();
@@ -347,20 +381,20 @@ class ReservationGrid {
     if (this.dragStartRow <= this.dragCurrentRow) {
       for (let r = this.dragStartRow; r <= this.dragCurrentRow; r++) {
         const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${this.dragColIndex}"]`);
-        if (slot && slot.classList.contains('booked')) break;
+        if (slot && (slot.classList.contains('booked') || slot.classList.contains('grid-slot-blocked'))) break;
         actualMax = r;
       }
     } else {
       for (let r = this.dragStartRow; r >= this.dragCurrentRow; r--) {
         const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${this.dragColIndex}"]`);
-        if (slot && slot.classList.contains('booked')) break;
+        if (slot && (slot.classList.contains('booked') || slot.classList.contains('grid-slot-blocked'))) break;
         actualMin = r;
       }
     }
 
     for (let r = actualMin; r <= actualMax; r++) {
       const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${this.dragColIndex}"]`);
-      if (slot && !slot.classList.contains('booked')) {
+      if (slot && !slot.classList.contains('booked') && !slot.classList.contains('grid-slot-blocked')) {
         slot.classList.add('drag-selected');
         const tr = slot.closest('tr');
         if (tr) tr.classList.add('selected-row');

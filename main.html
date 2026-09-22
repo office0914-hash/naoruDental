@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,11 +12,13 @@
   <link rel="stylesheet" href="systemSettings.css">
   <link rel="stylesheet" href="clinicHoliday.css">
   <link rel="stylesheet" href="leftClickActions.css">
+  <link rel="stylesheet" href="gridBlock.css">
   <link rel="stylesheet" href="appNew.css">
-  
+
   <!-- sql.js (Pure JS / Offline & File Protocol Ready) -->
   <script src="lib/sql-asm.js"></script>
 </head>
+
 <body>
 
   <!-- メインヘッダー：選択日付を表示 -->
@@ -32,11 +35,18 @@
       </div>
     </div>
 
+    <!-- ブロックモード表示バッジ -->
+    <div id="headerBlockModeBadge" class="header-block-mode-badge">
+      <span class="lock-icon-pulse">🔒</span>
+      <span>ブロックモード中（クリック/ドラッグで枠をブロック・解除）</span>
+      <span class="badge-tag">Shift+B</span>
+    </div>
+
     <!-- パイロットグリッド (新規予約キープ用スロット) -->
     <div class="pilot-grid-container" id="pilotGridContainer" title="クリックして予約内容・枠数を変更">
       <div class="pilot-grid-empty" id="pilotGridEmpty">
         <span class="pilot-empty-icon">📌</span>
-        <span class="pilot-empty-text">予約カード  ピン</span>
+        <span class="pilot-empty-text"></span>
       </div>
     </div>
   </header>
@@ -65,8 +75,10 @@
   <script src="calendar.js"></script>
   <script src="dragDropManager.js"></script>
   <script src="reservationGrid.js"></script>
+  <script src="gridBlock.js"></script>
   <script src="clinicHoliday.js"></script>
   <script src="leftClickActions.js"></script>
   <script src="appNew.js"></script>
 </body>
+
 </html>

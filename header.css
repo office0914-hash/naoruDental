@@ -5,7 +5,7 @@ header,
 #header {
   width: 100%;
   height: 80px;
-  background-color: #f3f4f6;
+  background-color: #beebcf;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -86,7 +86,6 @@ header,
   width: 265px;
   height: 53px;
   margin-left: 64px;
-  background-color: #ffffff;
   border: 1.5px dashed #cbd5e1;
   border-radius: 9px;
   display: flex;
@@ -98,6 +97,12 @@ header,
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: default;
   user-select: none;
+  background-color: #dcfce7;
+  background-image: repeating-linear-gradient(45deg,
+      rgba(169, 233, 192, 0.3),
+      rgba(82, 176, 116, 0.3) 4.5px,
+      transparent 4.5px,
+      transparent 9.5px);
 }
 
 /* 空状態 */
@@ -117,7 +122,8 @@ header,
 /* キープ中（アクティブ時：ボーダーを点線に変更） */
 .pilot-grid-container.pilot-active {
   background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
-  border: 2px dashed #0284c7 !important;
+  background-image: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 2px dashed #0284c7;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18), 0 0 0 3px rgba(2, 132, 199, 0.08);
   cursor: pointer;
   animation: pilotPulse 2.5s infinite ease-in-out;
@@ -126,13 +132,16 @@ header,
 .pilot-grid-container.pilot-active:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(2, 132, 199, 0.28), 0 0 0 4px rgba(2, 132, 199, 0.12);
-  border-color: #0369a1 !important;
+  border-color: #0369a1;
 }
 
 @keyframes pilotPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: #0284c7;
   }
+
   50% {
     border-color: #38bdf8;
   }

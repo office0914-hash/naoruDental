@@ -13,11 +13,16 @@ class DentalDatabase {
     this.legacyHolidaysKey = 'naoru_dental_holidays_db';
     this.legacyReservationKey = 'naoru_dental_reservations_db';
     this.legacyStaffKey = 'naoru_dental_staff_db';
+    this.legacyGridBlocksKey = 'naoru_dental_grid_blocks_db';
 
     // メモリキャッシュ（即時同期 & 高速アクセス）
     this.holidaysCache = new Set(['2026-09-21', '2026-09-22', '2026-09-23']);
     this.reservationsCache = [];
     this.staffCache = {};
+    this.gridBlocksCache = []; // [{ id, date, time, unit }]
+
+    this.isServerConnected = false;
+    this._saveDebounceTimer = null;
 
     // 起動時の初期ロード（画面描画の安全性を確保）
     this.loadFromFallbackStorage();
@@ -28,14 +33,45 @@ class DentalDatabase {
     try {
       if (typeof initSqlJs === 'function') {
         const SQL = await initSqlJs();
-        const savedDb = localStorage.getItem(this.sqliteStorageKey);
+        let loadedDbBytes = null;
 
-        if (savedDb) {
+        // 1. まずローカルサーバー (/api/db) からの取得を試みる
+        try {
+          const res = await fetch('/api/db', { cache: 'no-store' });
+          if (res.ok) {
+            const buffer = await res.arrayBuffer();
+            if (buffer && buffer.byteLength > 0) {
+              loadedDbBytes = new Uint8Array(buffer);
+              this.isServerConnected = true;
+              console.log(`[Database] ローカルサーバーからDB読み込み成功 (${loadedDbBytes.byteLength} bytes)`);
+            }
+          } else if (res.status === 404) {
+            this.isServerConnected = true;
+            console.log('[Database] ローカルサーバー接続OK（DB未作成のため新規作成）');
+          }
+        } catch (serverErr) {
+          console.warn('[Database] ローカルサーバー未接続（ブラウザ内保存モードで稼働）:', serverErr.message);
+          this.isServerConnected = false;
+        }
+
+        // 2. サーバーから取得できなかった場合は localStorage を確認
+        if (!loadedDbBytes) {
+          const savedDb = localStorage.getItem(this.sqliteStorageKey);
+          if (savedDb) {
+            try {
+              loadedDbBytes = new Uint8Array(JSON.parse(savedDb));
+            } catch (e) {
+              console.warn('[Database] LocalStorage SQLite復元失敗:', e);
+            }
+          }
+        }
+
+        // 3. SQLiteインスタンス作成
+        if (loadedDbBytes) {
           try {
-            const uInt8Array = new Uint8Array(JSON.parse(savedDb));
-            this.db = new SQL.Database(uInt8Array);
+            this.db = new SQL.Database(loadedDbBytes);
           } catch (e) {
-            console.warn('SQLite復元失敗、新規DBを作成します:', e);
+            console.warn('[Database] DBパース失敗、新規作成します:', e);
             this.db = new SQL.Database();
           }
         } else {
@@ -49,7 +85,7 @@ class DentalDatabase {
         this.loadFromFallbackStorage();
       }
     } catch (e) {
-      console.error('SQLite初期化エラー:', e);
+      console.error('[Database] SQLite初期化エラー:', e);
       this.loadFromFallbackStorage();
     } finally {
       this.isReady = true;
@@ -144,6 +180,28 @@ class DentalDatabase {
           });
         }
       }
+
+      // 4. グリッドブロック（予約不可枠）
+      this.gridBlocksCache = [];
+      const blockRes = this.db.exec(`SELECT id, date, time, unit FROM grid_blocks;`);
+      if (blockRes.length > 0 && blockRes[0].values.length > 0) {
+        const cols = blockRes[0].columns;
+        blockRes[0].values.forEach(row => {
+          const item = {};
+          cols.forEach((col, idx) => { item[col] = row[idx]; });
+          this.gridBlocksCache.push(item);
+        });
+      } else {
+        const rawBlocks = localStorage.getItem(this.legacyGridBlocksKey);
+        if (rawBlocks) {
+          this.gridBlocksCache = JSON.parse(rawBlocks);
+          const stmt = this.db.prepare(`INSERT OR REPLACE INTO grid_blocks (id, date, time, unit) VALUES (?, ?, ?, ?);`);
+          this.gridBlocksCache.forEach(b => {
+            stmt.run([b.id || `blk_${b.date}_${b.time}_${b.unit}`, b.date, b.time, b.unit]);
+          });
+          stmt.free();
+        }
+      }
     } catch (e) {
       console.error('syncAndLoadData error:', e);
       this.loadFromFallbackStorage();
@@ -189,6 +247,18 @@ class DentalDatabase {
           staff_name TEXT NOT NULL,
           updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
           UNIQUE(date, unit_id)
+        );
+      `);
+
+      // グリッドブロックテーブル (予約不可枠)
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS grid_blocks (
+          id TEXT PRIMARY KEY,
+          date TEXT NOT NULL,
+          time TEXT NOT NULL,
+          unit TEXT NOT NULL,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(date, time, unit)
         );
       `);
 
@@ -246,18 +316,48 @@ class DentalDatabase {
 
 
 
-  // 永続化保存
+  // 永続化保存（サーバー & ローカル両方への安全保存）
   saveDatabase() {
     try {
       if (this.db) {
         const binaryArray = this.db.export();
-        localStorage.setItem(this.sqliteStorageKey, JSON.stringify(Array.from(binaryArray)));
+
+        // 1. ローカルサーバーへの非同期同期（デバウンス処理）
+        if (this.isServerConnected || window.location.protocol.startsWith('http')) {
+          if (this._saveDebounceTimer) {
+            clearTimeout(this._saveDebounceTimer);
+          }
+          this._saveDebounceTimer = setTimeout(async () => {
+            try {
+              const res = await fetch('/api/db', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/octet-stream' },
+                body: binaryArray
+              });
+              if (res.ok) {
+                this.isServerConnected = true;
+              }
+            } catch (postErr) {
+              console.warn('[Database] サーバー保存一時失敗（次回リトライ）:', postErr.message);
+            }
+          }, 300);
+        }
+
+        // 2. ブラウザローカルストレージへのバックアップ保存
+        try {
+          localStorage.setItem(this.sqliteStorageKey, JSON.stringify(Array.from(binaryArray)));
+        } catch (storageErr) {
+          console.warn('[Database] LocalStorage 5MB上限または保存スキップ:', storageErr.message);
+        }
       }
+
+      // レガシーフォールバック保存
       localStorage.setItem(this.legacyHolidaysKey, JSON.stringify(Array.from(this.holidaysCache)));
       localStorage.setItem(this.legacyReservationKey, JSON.stringify(this.reservationsCache));
       localStorage.setItem(this.legacyStaffKey, JSON.stringify(this.staffCache));
+      localStorage.setItem(this.legacyGridBlocksKey, JSON.stringify(this.gridBlocksCache));
     } catch (e) {
-      console.error('Database save error:', e);
+      console.error('[Database] Database save error:', e);
     }
   }
 
@@ -274,10 +374,13 @@ class DentalDatabase {
       this.reservationsCache = rawRes ? JSON.parse(rawRes) : [];
       const rawStaff = localStorage.getItem(this.legacyStaffKey);
       this.staffCache = rawStaff ? JSON.parse(rawStaff) : {};
+      const rawBlocks = localStorage.getItem(this.legacyGridBlocksKey);
+      this.gridBlocksCache = rawBlocks ? JSON.parse(rawBlocks) : [];
     } catch (e) {
       this.holidaysCache = new Set(['2026-09-21', '2026-09-22', '2026-09-23']);
       this.reservationsCache = [];
       this.staffCache = {};
+      this.gridBlocksCache = [];
     }
   }
 
@@ -572,6 +675,110 @@ class DentalDatabase {
       this.staffCache[dateStr] = {};
     }
     this.staffCache[dateStr][unitId] = name;
+    this.saveDatabase();
+  }
+
+  /* -------------------------------------------
+     グリッドブロック (予約不可枠) 操作 (SQL & Cache)
+  ------------------------------------------- */
+  isSlotBlocked(dateStr, timeStr, unitStr) {
+    if (!dateStr || !timeStr || !unitStr) return false;
+    return this.gridBlocksCache.some(b => b.date === dateStr && b.time === timeStr && b.unit === unitStr);
+  }
+
+  getGridBlocksForDate(dateStr) {
+    if (!dateStr) return [];
+    return this.gridBlocksCache.filter(b => b.date === dateStr);
+  }
+
+  addGridBlock(dateStr, timeStr, unitStr) {
+    if (!dateStr || !timeStr || !unitStr) return false;
+    if (this.isSlotBlocked(dateStr, timeStr, unitStr)) return true;
+
+    const blockId = `blk_${dateStr}_${timeStr}_${unitStr}`;
+    const item = { id: blockId, date: dateStr, time: timeStr, unit: unitStr };
+
+    if (this.db) {
+      try {
+        this.db.run(`INSERT OR REPLACE INTO grid_blocks (id, date, time, unit) VALUES (?, ?, ?, ?);`, [blockId, dateStr, timeStr, unitStr]);
+      } catch (e) {
+        console.error('addGridBlock SQL error:', e);
+      }
+    }
+
+    this.gridBlocksCache.push(item);
+    this.saveDatabase();
+    return true;
+  }
+
+  removeGridBlock(dateStr, timeStr, unitStr) {
+    if (!dateStr || !timeStr || !unitStr) return false;
+
+    if (this.db) {
+      try {
+        this.db.run(`DELETE FROM grid_blocks WHERE date = ? AND time = ? AND unit = ?;`, [dateStr, timeStr, unitStr]);
+      } catch (e) {
+        console.error('removeGridBlock SQL error:', e);
+      }
+    }
+
+    this.gridBlocksCache = this.gridBlocksCache.filter(b => !(b.date === dateStr && b.time === timeStr && b.unit === unitStr));
+    this.saveDatabase();
+    return true;
+  }
+
+  toggleGridBlock(dateStr, timeStr, unitStr) {
+    if (this.isSlotBlocked(dateStr, timeStr, unitStr)) {
+      this.removeGridBlock(dateStr, timeStr, unitStr);
+      return false; // 解除された
+    } else {
+      this.addGridBlock(dateStr, timeStr, unitStr);
+      return true; // ブロックされた
+    }
+  }
+
+  addGridBlocksBatch(blocks) {
+    if (!blocks || blocks.length === 0) return;
+    if (this.db) {
+      try {
+        const stmt = this.db.prepare(`INSERT OR REPLACE INTO grid_blocks (id, date, time, unit) VALUES (?, ?, ?, ?);`);
+        blocks.forEach(b => {
+          const blockId = b.id || `blk_${b.date}_${b.time}_${b.unit}`;
+          stmt.run([blockId, b.date, b.time, b.unit]);
+        });
+        stmt.free();
+      } catch (e) {
+        console.error('addGridBlocksBatch SQL error:', e);
+      }
+    }
+    blocks.forEach(b => {
+      if (!this.isSlotBlocked(b.date, b.time, b.unit)) {
+        this.gridBlocksCache.push({
+          id: b.id || `blk_${b.date}_${b.time}_${b.unit}`,
+          date: b.date,
+          time: b.time,
+          unit: b.unit
+        });
+      }
+    });
+    this.saveDatabase();
+  }
+
+  removeGridBlocksBatch(blocks) {
+    if (!blocks || blocks.length === 0) return;
+    if (this.db) {
+      try {
+        const stmt = this.db.prepare(`DELETE FROM grid_blocks WHERE date = ? AND time = ? AND unit = ?;`);
+        blocks.forEach(b => {
+          stmt.run([b.date, b.time, b.unit]);
+        });
+        stmt.free();
+      } catch (e) {
+        console.error('removeGridBlocksBatch SQL error:', e);
+      }
+    }
+    const blockKeys = new Set(blocks.map(b => `${b.date}_${b.time}_${b.unit}`));
+    this.gridBlocksCache = this.gridBlocksCache.filter(b => !blockKeys.has(`${b.date}_${b.time}_${b.unit}`));
     this.saveDatabase();
   }
 }

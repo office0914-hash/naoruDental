@@ -30,18 +30,29 @@ $shortcut.WorkingDirectory = $scriptDir
 $shortcut.WindowStyle = 7 # 7 = Minimized (最小化で起動し画面をチラつかせない)
 $shortcut.Description = $shortcutDesc
 
-$edgePath = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'
-if (-not (Test-Path $edgePath)) {
-    $edgePath = Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe'
+$chromePath = Join-Path $env:ProgramFiles 'Google\Chrome\Application\chrome.exe'
+if (-not (Test-Path $chromePath) -and ${env:ProgramFiles(x86)}) {
+    $chromePath = Join-Path ${env:ProgramFiles(x86)} 'Google\Chrome\Application\chrome.exe'
 }
-if (-not (Test-Path $edgePath)) {
-    $edgePath = Join-Path $env:LocalAppData 'Microsoft\Edge\Application\msedge.exe'
+if (-not (Test-Path $chromePath)) {
+    $chromePath = Join-Path $env:LocalAppData 'Google\Chrome\Application\chrome.exe'
 }
 
-if (Test-Path $edgePath) {
-    $shortcut.IconLocation = "$edgePath,0"
+if (Test-Path $chromePath) {
+    $shortcut.IconLocation = "$chromePath,0"
 } else {
-    $shortcut.IconLocation = "shell32.dll,13"
+    $edgePath = Join-Path ${env:ProgramFiles(x86)} 'Microsoft\Edge\Application\msedge.exe'
+    if (-not (Test-Path $edgePath)) {
+        $edgePath = Join-Path $env:ProgramFiles 'Microsoft\Edge\Application\msedge.exe'
+    }
+    if (-not (Test-Path $edgePath)) {
+        $edgePath = Join-Path $env:LocalAppData 'Microsoft\Edge\Application\msedge.exe'
+    }
+    if (Test-Path $edgePath) {
+        $shortcut.IconLocation = "$edgePath,0"
+    } else {
+        $shortcut.IconLocation = "shell32.dll,13"
+    }
 }
 
 $shortcut.Save()

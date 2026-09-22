@@ -30,7 +30,70 @@ try {
         $request = $context.Request
         $response = $context.Response
         
+        # CORS ヘッダー
+        $response.AddHeader("Access-Control-Allow-Origin", "*")
+        $response.AddHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        $response.AddHeader("Access-Control-Allow-Headers", "*")
+        
+        if ($request.HttpMethod -eq "OPTIONS") {
+            $response.StatusCode = 200
+            $response.Close()
+            continue
+        }
+        
         $localPath = [System.Uri]::UnescapeDataString($request.Url.AbsolutePath).TrimStart('/')
+        
+        # 1. データベース API エンドポイント (/api/db)
+        if ($localPath -eq 'api/db') {
+            $dbFilePath = Join-Path $baseDir "naoru_dental.db"
+            $backupPath = Join-Path $baseDir "naoru_dental.db.bak"
+            
+            if ($request.HttpMethod -eq "GET") {
+                if (Test-Path $dbFilePath -PathType Leaf) {
+                    $dbBytes = [System.IO.File]::ReadAllBytes($dbFilePath)
+                    $response.ContentType = "application/octet-stream"
+                    $response.ContentLength64 = $dbBytes.Length
+                    $response.OutputStream.Write($dbBytes, 0, $dbBytes.Length)
+                } else {
+                    $response.StatusCode = 404
+                    $msgBytes = [System.Text.Encoding]::UTF8.GetBytes("No Database Found")
+                    $response.OutputStream.Write($msgBytes, 0, $msgBytes.Length)
+                }
+            } elseif ($request.HttpMethod -eq "POST") {
+                try {
+                    $memoryStream = New-Object System.IO.MemoryStream
+                    $request.InputStream.CopyTo($memoryStream)
+                    $postBytes = $memoryStream.ToArray()
+                    $memoryStream.Close()
+                    
+                    if ($postBytes.Length -gt 0) {
+                        # 既存DBがあればバックアップ作成
+                        if (Test-Path $dbFilePath) {
+                            Copy-Item -Path $dbFilePath -Destination $backupPath -Force
+                        }
+                        [System.IO.File]::WriteAllBytes($dbFilePath, $postBytes)
+                        $response.StatusCode = 200
+                        $msgBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"ok","size":' + $postBytes.Length + '}')
+                        $response.ContentType = "application/json; charset=utf-8"
+                        $response.OutputStream.Write($msgBytes, 0, $msgBytes.Length)
+                    } else {
+                        $response.StatusCode = 400
+                        $errBytes = [System.Text.Encoding]::UTF8.GetBytes('{"error":"Empty payload"}')
+                        $response.ContentType = "application/json; charset=utf-8"
+                        $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                    }
+                } catch {
+                    $response.StatusCode = 500
+                    $errBytes = [System.Text.Encoding]::UTF8.GetBytes('{"error":"' + $_.Exception.Message + '"}')
+                    $response.ContentType = "application/json; charset=utf-8"
+                    $response.OutputStream.Write($errBytes, 0, $errBytes.Length)
+                }
+            }
+            $response.Close()
+            continue
+        }
+
+        # 2. 静的ファイル配信
         if ([string]::IsNullOrEmpty($localPath) -or $localPath -eq '/') {
             $localPath = "main.html"
         }

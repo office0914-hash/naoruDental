@@ -250,6 +250,9 @@ class DragDropManager {
         } else if (targetBookingGroup !== bg) {
           isSingleMatchingGroup = false;
         }
+      } else if (cell.classList.contains('grid-slot-blocked')) {
+        isAllEmpty = false;
+        isSingleMatchingGroup = false;
       } else if (targetBookingGroup) {
         isSingleMatchingGroup = false;
       }

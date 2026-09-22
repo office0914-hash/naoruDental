@@ -1737,7 +1737,7 @@ class PilotGridManager {
       this.containerEl.innerHTML = html`
         <div class="pilot-grid-empty" id="pilotGridEmpty">
           <span class="pilot-empty-icon">📌</span>
-          <span class="pilot-empty-text">予約カード  ピン</span>
+          <span class="pilot-empty-text"></span>
         </div>
       `;
       return;

@@ -106,10 +106,11 @@
 }
 
 /* --------------------------------------------------------------------------
-   2.1 予備枠 (淡い緑色の斜線パターン)
+   2.1 予備枠 & 昼休憩枠 (淡い緑色の斜線パターン)
    -------------------------------------------------------------------------- */
-.grid-table td.grid-slot-cell.slot-sub:not(.booked),
-.grid-table td.grid-slot-cell[data-col="4"]:not(.booked) {
+.grid-table td.grid-slot-cell.slot-sub:not(.booked):not(.grid-slot-blocked),
+.grid-table td.grid-slot-cell.slot-break:not(.booked):not(.grid-slot-blocked),
+.grid-table td.grid-slot-cell[data-col="4"]:not(.booked):not(.grid-slot-blocked) {
   background-color: #f7fee7;
   background-image: repeating-linear-gradient(-45deg,
       rgba(216, 247, 231, 0.22),
@@ -118,8 +119,9 @@
       transparent 9.5px);
 }
 
-.grid-table td.grid-slot-cell.slot-sub:not(.booked):hover,
-.grid-table td.grid-slot-cell[data-col="4"]:not(.booked):hover {
+.grid-table td.grid-slot-cell.slot-sub:not(.booked):not(.grid-slot-blocked):hover,
+.grid-table td.grid-slot-cell.slot-break:not(.booked):not(.grid-slot-blocked):hover,
+.grid-table td.grid-slot-cell[data-col="4"]:not(.booked):not(.grid-slot-blocked):hover {
   background-color: #dcfce7 !important;
   background-image: repeating-linear-gradient(-45deg,
       rgba(34, 197, 94, 0.3),
