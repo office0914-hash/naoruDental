@@ -383,14 +383,14 @@
   font-size: 0.84rem;
 }
 
-/* Modal Footer (下段ボタン) */
+/* Modal Footer (下段ボタン: 左にキャンセル、右詰めに確定) */
 .app-modal-footer {
   padding: 10px 18px;
   background-color: #ffffff;
   border-top: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
   flex-shrink: 0;
 }

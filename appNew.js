@@ -219,17 +219,32 @@ class AppointmentModal {
     if (this.chartNoInput) {
       this.chartNoInput.addEventListener('input', () => {
         const val = this.chartNoInput.value.trim();
-        if (val.length >= 4) {
-          const directMatch = this.patientMap.get(val) || this.patientMap.get(val.padStart(4, '0'));
-          if (directMatch) {
-            this.selectPatient(directMatch, false);
-            return;
+        if (!val) {
+          this.clearPatientInfo(false);
+        } else {
+          // 入力中はサジェストを出さず、打ち終えてリターンキーが押されるのを待つ
+          this.hideCandidates();
+          if (this.chartNoInput.classList.contains('match-found')) {
+            this.chartNoInput.classList.remove('match-found');
           }
         }
-        this.searchAndShowCandidates(val, 'chartNo');
       });
       this.chartNoInput.addEventListener('keydown', (e) => this.handleKeyNavigation(e, 'chartNo'));
-      attachBlurHandler(this.chartNoInput);
+      this.chartNoInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (!this.modalEl || !this.modalEl.contains(document.activeElement)) {
+            this.hideCandidates();
+          }
+        }, 200);
+
+        const val = this.chartNoInput.value.trim();
+        if (val && (!this.nameInput || !this.nameInput.value)) {
+          const patient = this.findPatientByChartNo(val);
+          if (patient) {
+            this.selectPatient(patient, false);
+          }
+        }
+      });
     }
 
     // 2. 氏名
@@ -279,6 +294,25 @@ class AppointmentModal {
         this.positionNearElement(this.targetElement);
       }
     });
+  }
+
+  // カルテ番号による患者検索
+  findPatientByChartNo(query) {
+    if (!query) return null;
+    const rawVal = query.trim();
+    if (!rawVal) return null;
+    const cleanDigits = rawVal.replace(/\D/g, '');
+
+    // 1. Map lookup (direct / digits / padded)
+    let p = this.patientMap.get(rawVal);
+    if (!p && cleanDigits) {
+      p = this.patientMap.get(cleanDigits) || this.patientMap.get(cleanDigits.padStart(4, '0'));
+    }
+    if (p) return p;
+
+    // 2. List search (exact chartNo)
+    p = this.patientList.find(item => item.chartNo === rawVal || (cleanDigits && (item.chartNo === cleanDigits || item.chartNo === cleanDigits.padStart(4, '0'))));
+    return p || null;
   }
 
   // -------------------------------------------
@@ -361,14 +395,23 @@ class AppointmentModal {
   }
 
   handleKeyNavigation(e, sourceInputType) {
+    if (e.isComposing || e.keyCode === 229) {
+      return;
+    }
+
     if (!this.candidatesWrapper || this.candidatesWrapper.style.display === 'none') {
       if (e.key === 'Enter') {
         e.preventDefault();
         if (sourceInputType === 'chartNo') {
           const val = this.chartNoInput.value.trim();
-          const p = this.patientMap.get(val) || this.patientMap.get(val.padStart(4, '0'));
-          if (p) {
-            this.selectPatient(p, true);
+          if (!val) return;
+          const patient = this.findPatientByChartNo(val);
+          if (patient) {
+            this.selectPatient(patient, true);
+            return;
+          } else {
+            // 完全一致がない場合は該当候補を検索・表示
+            this.searchAndShowCandidates(val, 'chartNo');
             return;
           }
         }
@@ -380,7 +423,13 @@ class AppointmentModal {
     }
 
     const items = this.candidatesList.querySelectorAll('.candidate-item');
-    if (!items.length) return;
+    if (!items.length) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.hideCandidates();
+      }
+      return;
+    }
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
@@ -439,8 +488,12 @@ class AppointmentModal {
 
     this.hideCandidates();
 
-    if (moveFocus && this.submitBtn) {
-      this.submitBtn.focus();
+    if (moveFocus) {
+      if (this.treatmentInput) {
+        this.treatmentInput.focus();
+      } else if (this.submitBtn) {
+        this.submitBtn.focus();
+      }
     }
   }
 
@@ -601,16 +654,16 @@ class AppointmentModal {
       if (submitBtn) submitBtn.textContent = '確定';
     }
 
+    if (this.focusTimer) {
+      clearTimeout(this.focusTimer);
+      this.focusTimer = null;
+    }
+
     this.modalEl.classList.add('show');
 
     if (this.targetElement) {
       requestAnimationFrame(() => {
         this.positionNearElement(this.targetElement);
-        if (this.treatmentInput && this.treatmentInput.value) {
-          this.treatmentInput.focus();
-        } else if (this.chartNoInput) {
-          this.chartNoInput.focus();
-        }
       });
     } else {
       if (this.containerEl) {
@@ -618,8 +671,20 @@ class AppointmentModal {
         this.containerEl.style.top = '50%';
         this.containerEl.style.transform = 'translate(-50%, -50%)';
       }
-      if (this.chartNoInput) setTimeout(() => this.chartNoInput.focus(), 50);
     }
+
+    // 新規予約モーダル出現から1秒後に自動でカルテ番号のキャレットをアクティブにする
+    this.focusTimer = setTimeout(() => {
+      if (this.modalEl && this.modalEl.classList.contains('show')) {
+        if (this.chartNoInput) {
+          this.chartNoInput.focus();
+          if (this.chartNoInput.value && typeof this.chartNoInput.setSelectionRange === 'function') {
+            const len = this.chartNoInput.value.length;
+            this.chartNoInput.setSelectionRange(len, len);
+          }
+        }
+      }
+    }, 1000);
   }
 
   formatBadgeDate(dateStr) {
@@ -636,6 +701,10 @@ class AppointmentModal {
   }
 
   close() {
+    if (this.focusTimer) {
+      clearTimeout(this.focusTimer);
+      this.focusTimer = null;
+    }
     this.hideCandidates();
     if (this.modalEl) this.modalEl.classList.remove('show');
     if (window.reservationGrid && typeof window.reservationGrid.clearSelection === 'function') {
@@ -1686,6 +1755,9 @@ class PilotGridManager {
     // D&D飛行アニメーションを実行
     this.flyToPilot(sourceCellEl, () => {
       this.renderPilotCard();
+      if (window.reservationGrid && typeof window.reservationGrid.updatePilotPlacementAvailability === 'function') {
+        window.reservationGrid.updatePilotPlacementAvailability();
+      }
     });
   }
 
@@ -1727,6 +1799,9 @@ class PilotGridManager {
       this.heldBooking.durationMin = slotCount * 30;
     }
     this.renderPilotCard();
+    if (window.reservationGrid && typeof window.reservationGrid.updatePilotPlacementAvailability === 'function') {
+      window.reservationGrid.updatePilotPlacementAvailability();
+    }
   }
 
   // パイロットカードの描画
@@ -1776,6 +1851,9 @@ class PilotGridManager {
     this.clearSourceDotted();
     this.heldBooking = null;
     this.renderPilotCard();
+    if (window.reservationGrid && typeof window.reservationGrid.updatePilotPlacementAvailability === 'function') {
+      window.reservationGrid.updatePilotPlacementAvailability();
+    }
   }
 
   // 元セルからパイロットグリッドへのD&D飛行アニメーション

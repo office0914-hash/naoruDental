@@ -3,6 +3,7 @@
 ------------------------------------------- */
 .system-settings,
 #systemSettings {
+  position: relative; /* 右下角の電源ボタン配置用 */
   width: 280px;
   height: 100%; /* 全画面フィット */
   background-color: #f8fafc;
@@ -45,5 +46,317 @@
 
 .settings-btn:active {
   transform: translateY(0);
+}
+
+/* -------------------------------------------
+   電源ボタン (右下角・正方形・立体的 3D・ライムネオン発光)
+------------------------------------------- */
+.power-btn {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  /* 立体的な押しボタン効果（底面エッジ＋外側影＋天面ハイライト） */
+  box-shadow: 0 3px 0 #cbd5e1, 0 4px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 #ffffff;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.power-btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #cbd5e1, 0 6px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 #ffffff;
+}
+
+.power-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 #cbd5e1, 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* 電源アイコン (SVG) */
+.power-icon {
+  width: 22px;
+  height: 22px;
+  stroke: #94a3b8;
+  stroke-width: 2.4;
+  fill: none;
+  transition: all 0.3s ease;
+  filter: none;
+}
+
+/* 稼働中 (is-running): 白系背景に映えるライム色のネオン風発光 */
+.power-btn.is-running .power-icon {
+  stroke: #65a30d;
+  filter: drop-shadow(0 0 1px #84cc16)
+          drop-shadow(0 0 3.5px #a3e635)
+          drop-shadow(0 0 8px rgba(132, 204, 22, 0.6));
+  animation: neonLimeGlow 2.4s ease-in-out infinite alternate;
+}
+
+.power-btn.is-running:hover .power-icon {
+  stroke: #84cc16;
+  filter: drop-shadow(0 0 1.5px #a3e635)
+          drop-shadow(0 0 5px #bef264)
+          drop-shadow(0 0 11px rgba(163, 230, 53, 0.85));
+}
+
+/* 終了処理中 (is-shutting-down): 検証＆バックアップ実行中は激しく点滅 */
+.power-btn.is-shutting-down .power-icon {
+  animation: neonLimeFastBlink 0.22s ease-in-out infinite alternate !important;
+}
+
+/* フェードアウト (is-fading-out): ライム色の光がすーっと消える */
+.power-btn.is-fading-out .power-icon {
+  animation: none !important;
+  stroke: #cbd5e1 !important;
+  filter: drop-shadow(0 0 0 transparent) !important;
+  opacity: 0.35 !important;
+  transition: stroke 1.4s cubic-bezier(0.2, 0.8, 0.4, 1),
+              filter 1.4s cubic-bezier(0.2, 0.8, 0.4, 1),
+              opacity 1.4s cubic-bezier(0.2, 0.8, 0.4, 1) !important;
+}
+
+/* 停止・消灯状態 (is-off) */
+.power-btn.is-off .power-icon {
+  stroke: #cbd5e1 !important;
+  filter: none !important;
+  opacity: 0.35 !important;
+  animation: none !important;
+}
+
+/* ネオン風の微細な明滅アニメーション (通常稼働時) */
+@keyframes neonLimeGlow {
+  0% {
+    stroke: #65a30d;
+    filter: drop-shadow(0 0 1px #84cc16)
+            drop-shadow(0 0 3px #a3e635)
+            drop-shadow(0 0 7px rgba(132, 204, 22, 0.5));
+  }
+  50% {
+    stroke: #84cc16;
+    filter: drop-shadow(0 0 2px #a3e635)
+            drop-shadow(0 0 5px #bef264)
+            drop-shadow(0 0 10px rgba(132, 204, 22, 0.75));
+  }
+  100% {
+    stroke: #65a30d;
+    filter: drop-shadow(0 0 1px #84cc16)
+            drop-shadow(0 0 3px #a3e635)
+            drop-shadow(0 0 7px rgba(132, 204, 22, 0.5));
+  }
+}
+
+/* 終了処理中の高速ネオン点滅アニメーション */
+@keyframes neonLimeFastBlink {
+  0% {
+    stroke: #84cc16;
+    filter: drop-shadow(0 0 2px #bef264)
+            drop-shadow(0 0 6px #a3e635)
+            drop-shadow(0 0 12px rgba(163, 230, 53, 0.9));
+    opacity: 1;
+  }
+  100% {
+    stroke: #4d7c0f;
+    filter: drop-shadow(0 0 0 transparent);
+    opacity: 0.2;
+  }
+}
+
+/* -------------------------------------------
+   システム終了画面オーバーレイ (Shutdown Overlay)
+------------------------------------------- */
+.shutdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.shutdown-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.shutdown-card {
+  width: 440px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  padding: 28px 24px;
+  text-align: center;
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shutdown-overlay.show .shutdown-card {
+  transform: scale(1);
+}
+
+.shutdown-icon-wrap {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+}
+
+.shutdown-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
+.shutdown-step-list {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: left;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shutdown-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.shutdown-step.step-running {
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.shutdown-step.step-done {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.shutdown-step.step-error {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.shutdown-step-icon {
+  font-size: 1.1rem;
+  display: inline-block;
+  width: 20px;
+  text-align: center;
+}
+
+.shutdown-btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.shutdown-btn-close {
+  padding: 10px 22px;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.shutdown-btn-close:hover {
+  background-color: #334155;
+}
+
+.shutdown-btn-restart {
+  padding: 10px 18px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shutdown-btn-restart:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* 完全終了ブラックアウト画面 */
+.shutdown-overlay.blackout {
+  background-color: #090d16 !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.shutdown-blackout-card {
+  text-align: center;
+  color: #ffffff;
+  max-width: 500px;
+  padding: 36px 32px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  animation: scaleFadeIn 0.3s ease-out;
+}
+
+@keyframes scaleFadeIn {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.kbd-key {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 5px;
+  box-shadow: 0 2px 0 #334155;
+  margin: 0 3px;
+  vertical-align: middle;
 }
 

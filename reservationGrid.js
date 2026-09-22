@@ -83,6 +83,38 @@ class ReservationGrid {
         }
       }
 
+      // パイロットグリッド保持時の枠数拡張 & 可否判定 & 複数枠緑色ハイライトの適用
+      if (window.pilotGridManager && window.pilotGridManager.hasBooking()) {
+        const held = window.pilotGridManager.heldBooking;
+        const slotCount = held.slotCount || 1;
+        if (slotCount > 1) {
+          const canFit = this.canFitPilotBooking(actualMin, colIndex, slotCount);
+          if (!canFit) {
+            this.clearSelection();
+            if (startCell) {
+              startCell.classList.add('cell-shake-error');
+              setTimeout(() => startCell.classList.remove('cell-shake-error'), 450);
+            }
+            return;
+          }
+          slotTimes.length = 0;
+          for (let r = actualMin; r < actualMin + slotCount; r++) {
+            if (r < this.timeSlots.length) {
+              slotTimes.push(this.timeSlots[r]);
+            }
+          }
+          // すべての対象枠を緑色枠（drag-selected / selected）で囲む
+          for (let r = actualMin; r < actualMin + slotCount; r++) {
+            const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
+            if (slot) {
+              slot.classList.add('drag-selected', 'selected');
+              const tr = slot.closest('tr');
+              if (tr) tr.classList.add('selected-row');
+            }
+          }
+        }
+      }
+
       if (slotTimes.length === 0 || !startCell) return;
 
       const dateStr = startCell.dataset.date;
@@ -116,6 +148,7 @@ class ReservationGrid {
 
     const tableWrapper = document.createElement('div');
     tableWrapper.className = 'grid-table-wrapper';
+    tableWrapper.addEventListener('mouseleave', () => this.clearPilotHoverPreview());
 
     const table = document.createElement('table');
     table.className = 'grid-table';
@@ -151,6 +184,9 @@ class ReservationGrid {
     table.appendChild(tbody);
     tableWrapper.appendChild(table);
     this.container.appendChild(tableWrapper);
+
+    // パイロットグリッド保持中の枠数に応じた配置可否判定・アイコン表示
+    this.updatePilotPlacementAvailability();
   }
 
   // -------------------------------------------
@@ -260,21 +296,43 @@ class ReservationGrid {
       if (e.button !== 0 || booking || tdSlot.classList.contains('grid-slot-blocked')) return;
       if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
 
+      // パイロットグリッド保持中で収まらない枠をクリックした場合：ドラッグを開始せずエラー効果
+      let pilotSlotCount = 1;
+      if (window.pilotGridManager && window.pilotGridManager.hasBooking()) {
+        const held = window.pilotGridManager.heldBooking;
+        pilotSlotCount = held.slotCount || 1;
+        if (tdSlot.classList.contains('pilot-cannot-fit') || !this.canFitPilotBooking(rowIndex, colIndex, pilotSlotCount)) {
+          tdSlot.classList.add('cell-shake-error');
+          setTimeout(() => tdSlot.classList.remove('cell-shake-error'), 450);
+          return;
+        }
+      }
+
       e.preventDefault();
+      this.clearPilotHoverPreview();
       this.isDragging = true;
       this.dragStartRow = rowIndex;
-      this.dragCurrentRow = rowIndex;
+      this.dragCurrentRow = (pilotSlotCount > 1) ? Math.min(this.timeSlots.length - 1, rowIndex + pilotSlotCount - 1) : rowIndex;
       this.dragColIndex = colIndex;
       this.clearSelection();
       this.updateDragSelection();
     };
 
     tdSlot.onmouseenter = () => {
-      if (!this.isDragging) return;
-      if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
-      if (colIndex !== this.dragColIndex) return;
-      this.dragCurrentRow = rowIndex;
-      this.updateDragSelection();
+      if (this.isDragging) {
+        if (window.gridBlockManager && window.gridBlockManager.isBlockMode()) return;
+        if (colIndex !== this.dragColIndex) return;
+        this.dragCurrentRow = rowIndex;
+        this.updateDragSelection();
+      } else {
+        this._handlePilotCellHover(tdSlot, rowIndex, colIndex);
+      }
+    };
+
+    tdSlot.onmouseleave = () => {
+      if (!this.isDragging) {
+        this.clearPilotHoverPreview();
+      }
     };
 
     return tdSlot;
@@ -395,7 +453,7 @@ class ReservationGrid {
     for (let r = actualMin; r <= actualMax; r++) {
       const slot = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${this.dragColIndex}"]`);
       if (slot && !slot.classList.contains('booked') && !slot.classList.contains('grid-slot-blocked')) {
-        slot.classList.add('drag-selected');
+        slot.classList.add('drag-selected', 'selected');
         const tr = slot.closest('tr');
         if (tr) tr.classList.add('selected-row');
       }
@@ -432,6 +490,129 @@ class ReservationGrid {
       return all.filter(r => r.date === dateStr);
     }
     return [];
+  }
+
+  // -------------------------------------------
+  // 5. パイロットグリッド保持時の空き枠・配置可否 & 複数枠プレビュー
+  // -------------------------------------------
+
+  updatePilotPlacementAvailability() {
+    if (!this.container) return;
+
+    // 既存のパイロット配置関連クラス・バッジをクリア
+    const allCells = this.container.querySelectorAll('.grid-slot-cell');
+    allCells.forEach(cell => {
+      cell.classList.remove('pilot-cannot-fit', 'pilot-can-fit', 'pilot-preview-cell', 'pilot-preview-top', 'pilot-preview-bottom', 'pilot-preview-invalid');
+      const badge = cell.querySelector('.pilot-no-fit-indicator');
+      if (badge) badge.remove();
+    });
+
+    if (!window.pilotGridManager || !window.pilotGridManager.hasBooking()) {
+      return;
+    }
+
+    const held = window.pilotGridManager.heldBooking;
+    const slotCount = held.slotCount || 1;
+
+    // slotCount が 2 以上の場合、収まらない枠に 🚫 マークを付与
+    if (slotCount >= 2) {
+      for (let colIndex = 1; colIndex < this.columns.length; colIndex++) {
+        for (let rowIndex = 0; rowIndex < this.timeSlots.length; rowIndex++) {
+          const cell = this.container.querySelector(`.grid-slot-cell[data-row="${rowIndex}"][data-col="${colIndex}"]`);
+          if (!cell || cell.classList.contains('booked') || cell.classList.contains('grid-slot-blocked')) {
+            continue;
+          }
+
+          const canFit = this.canFitPilotBooking(rowIndex, colIndex, slotCount);
+          if (!canFit) {
+            cell.classList.add('pilot-cannot-fit');
+            const indicator = document.createElement('div');
+            indicator.className = 'pilot-no-fit-indicator';
+            indicator.innerHTML = `<span class="no-fit-icon" title="${slotCount * 30}分（${slotCount}枠）の空きが足りません">🚫</span>`;
+            cell.appendChild(indicator);
+          } else {
+            cell.classList.add('pilot-can-fit');
+          }
+        }
+      }
+    } else {
+      allCells.forEach(cell => {
+        if (!cell.classList.contains('booked') && !cell.classList.contains('grid-slot-blocked')) {
+          cell.classList.add('pilot-can-fit');
+        }
+      });
+    }
+  }
+
+  canFitPilotBooking(startRowIndex, colIndex, slotCount) {
+    if (startRowIndex + slotCount > this.timeSlots.length) {
+      return false;
+    }
+
+    for (let r = startRowIndex; r < startRowIndex + slotCount; r++) {
+      const cell = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
+      if (!cell) return false;
+      if (cell.classList.contains('booked') || cell.classList.contains('grid-slot-blocked')) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  _handlePilotCellHover(tdSlot, rowIndex, colIndex) {
+    this.clearPilotHoverPreview();
+
+    if (!window.pilotGridManager || !window.pilotGridManager.hasBooking()) {
+      return;
+    }
+
+    if (this.isDragging) return;
+
+    const held = window.pilotGridManager.heldBooking;
+    const slotCount = held.slotCount || 1;
+
+    // 予約済み枠またはブロック枠の上
+    if (tdSlot.classList.contains('booked') || tdSlot.classList.contains('grid-slot-blocked')) {
+      return;
+    }
+
+    const canFit = this.canFitPilotBooking(rowIndex, colIndex, slotCount);
+
+    if (canFit) {
+      // 予約枠分のすべてのグリッドの色を変えて複数枠であることをユーザーに通知
+      for (let r = rowIndex; r < rowIndex + slotCount; r++) {
+        const targetCell = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
+        if (targetCell) {
+          targetCell.classList.add('pilot-preview-cell');
+          if (r === rowIndex) {
+            targetCell.classList.add('pilot-preview-top');
+            targetCell.dataset.pilotDuration = `${slotCount * 30}分 (${slotCount}枠)`;
+          }
+          if (r === rowIndex + slotCount - 1) {
+            targetCell.classList.add('pilot-preview-bottom');
+          }
+        }
+      }
+    } else {
+      // 収まらない場合：収まらない枠にエラープレビュー
+      tdSlot.classList.add('pilot-preview-invalid');
+      const maxRows = Math.min(this.timeSlots.length, rowIndex + slotCount);
+      for (let r = rowIndex; r < maxRows; r++) {
+        const targetCell = this.container.querySelector(`.grid-slot-cell[data-row="${r}"][data-col="${colIndex}"]`);
+        if (targetCell && !targetCell.classList.contains('booked') && !targetCell.classList.contains('grid-slot-blocked')) {
+          targetCell.classList.add('pilot-preview-invalid');
+        }
+      }
+    }
+  }
+
+  clearPilotHoverPreview() {
+    if (!this.container) return;
+    const previewCells = this.container.querySelectorAll('.pilot-preview-cell, .pilot-preview-top, .pilot-preview-bottom, .pilot-preview-invalid');
+    previewCells.forEach(c => {
+      c.classList.remove('pilot-preview-cell', 'pilot-preview-top', 'pilot-preview-bottom', 'pilot-preview-invalid');
+    });
   }
 }
 

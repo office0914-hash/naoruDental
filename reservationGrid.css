@@ -163,6 +163,126 @@
 }
 
 /* --------------------------------------------------------------------------
+   3.5 パイロットグリッド 複数枠予約プレビュー & 収まらない枠の🚫アイコン
+   -------------------------------------------------------------------------- */
+
+/* 収まらない枠（pilot-cannot-fit） */
+.grid-table td.grid-slot-cell.pilot-cannot-fit {
+  background-color: #f8fafc !important;
+  background-image: repeating-linear-gradient(-45deg,
+      rgba(241, 245, 249, 0.9),
+      rgba(241, 245, 249, 0.9) 4px,
+      rgba(226, 232, 240, 0.45) 4px,
+      rgba(226, 232, 240, 0.45) 8px) !important;
+  cursor: not-allowed !important;
+  position: relative;
+}
+
+.grid-table td.grid-slot-cell.pilot-cannot-fit:hover::after {
+  display: none !important;
+}
+
+.pilot-no-fit-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.55;
+  transition: all 0.15s ease;
+}
+
+.pilot-no-fit-indicator .no-fit-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.grid-table td.grid-slot-cell.pilot-cannot-fit:hover {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+}
+
+.grid-table td.grid-slot-cell.pilot-cannot-fit:hover .pilot-no-fit-indicator {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.15);
+}
+
+/* 複数枠ホバープレビュー (pilot-preview-cell) */
+.grid-table td.grid-slot-cell.pilot-preview-cell {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+  border-left: 2.5px solid #0284c7 !important;
+  border-right: 2.5px solid #0284c7 !important;
+  border-top: 1px dashed #7dd3fc !important;
+  border-bottom: 1px dashed #7dd3fc !important;
+  cursor: pointer !important;
+  position: relative;
+  z-index: 3;
+}
+
+.grid-table td.grid-slot-cell.pilot-preview-cell:hover::after {
+  display: none !important;
+}
+
+.grid-table td.grid-slot-cell.pilot-preview-top {
+  border-top: 2.5px solid #0284c7 !important;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.grid-table td.grid-slot-cell.pilot-preview-top::before {
+  content: attr(data-pilot-duration);
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background-color: #0284c7;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3);
+  pointer-events: none;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+.grid-table td.grid-slot-cell.pilot-preview-bottom {
+  border-bottom: 2.5px solid #0284c7 !important;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* 収まらない枠でのホバープレビュー (エラー警告) */
+.grid-table td.grid-slot-cell.pilot-preview-invalid {
+  background-color: #fee2e2 !important;
+  border: 1.5px dashed #ef4444 !important;
+  cursor: not-allowed !important;
+  z-index: 3;
+}
+
+.grid-table td.grid-slot-cell.pilot-preview-invalid:hover::after {
+  display: none !important;
+}
+
+/* 収まらない枠をクリックした時のシェイクアニメーション */
+.grid-table td.grid-slot-cell.cell-shake-error {
+  animation: cellShake 0.4s ease-in-out;
+  border-color: #ef4444 !important;
+  background-color: #fee2e2 !important;
+}
+
+@keyframes cellShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+/* --------------------------------------------------------------------------
    4. 予約カード（角丸カードデザイン & 複数枠シームレス結合）
    -------------------------------------------------------------------------- */
 .grid-table td.grid-slot-cell.booked {

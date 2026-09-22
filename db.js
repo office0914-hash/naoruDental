@@ -365,6 +365,116 @@ class DentalDatabase {
     this.saveDatabase();
   }
 
+  // データベースの整合性検証 (PRAGMA integrity_check & テーブル検証)
+  async checkIntegrity() {
+    const result = {
+      ok: true,
+      sqliteChecked: false,
+      integrityResult: 'ok',
+      errors: [],
+      stats: {
+        reservations: 0,
+        holidays: this.holidaysCache.size,
+        staff: Object.keys(this.staffCache).length,
+        gridBlocks: this.gridBlocksCache.length
+      }
+    };
+
+    if (this.db) {
+      try {
+        // 1. SQLite PRAGMA integrity_check
+        const checkRes = this.db.exec('PRAGMA integrity_check;');
+        if (checkRes.length > 0 && checkRes[0].values.length > 0) {
+          const val = checkRes[0].values[0][0];
+          result.integrityResult = val;
+          result.sqliteChecked = true;
+          if (val !== 'ok') {
+            result.ok = false;
+            result.errors.push(`Integrity Check: ${val}`);
+          }
+        }
+
+        // 2. 外部キー・クイックチェック
+        const fkRes = this.db.exec('PRAGMA foreign_key_check;');
+        if (fkRes.length > 0 && fkRes[0].values.length > 0) {
+          result.ok = false;
+          result.errors.push(`Foreign Key Violations: ${fkRes[0].values.length} 件`);
+        }
+
+        // 3. 各テーブルのレコード件数確認
+        const countRes = this.db.exec('SELECT COUNT(*) FROM reservations;');
+        if (countRes.length > 0) {
+          result.stats.reservations = countRes[0].values[0][0];
+        }
+      } catch (err) {
+        result.ok = false;
+        result.errors.push(`SQLite Query Error: ${err.message}`);
+      }
+    } else {
+      result.stats.reservations = this.reservationsCache.length;
+    }
+
+    console.log('[Database] 整合性検証結果:', result);
+    return result;
+  }
+
+  // データベースの即時保存 & バックアップ実行
+  async performBackup() {
+    const backupResult = {
+      ok: true,
+      serverBackup: false,
+      localStorageBackup: false,
+      timestamp: new Date().toISOString(),
+      formattedTime: new Date().toLocaleString('ja-JP'),
+      errors: []
+    };
+
+    try {
+      // 1. 現在の全データをSQLiteバイナリ化して即時POST保存
+      if (this.db) {
+        const binaryArray = this.db.export();
+        try {
+          const postRes = await fetch('/api/db', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: binaryArray
+          });
+          if (postRes.ok) {
+            // 2. サーバー側にタイムスタンプ付きバックアップを作成
+            const backupRes = await fetch('/api/backup', { method: 'POST' });
+            if (backupRes.ok) {
+              backupResult.serverBackup = true;
+            }
+          }
+        } catch (serverErr) {
+          console.warn('[Database] サーバーバックアップスキップ:', serverErr.message);
+        }
+
+        // 3. LocalStorageにもバックアップを安全保存
+        try {
+          localStorage.setItem(this.sqliteStorageKey, JSON.stringify(Array.from(binaryArray)));
+          localStorage.setItem('naoru_dental_backup_time', backupResult.formattedTime);
+          backupResult.localStorageBackup = true;
+        } catch (lsErr) {
+          console.warn('[Database] LocalStorageバックアップ警告:', lsErr.message);
+        }
+      }
+
+      // レガシーキャッシュも同期
+      localStorage.setItem(this.legacyHolidaysKey, JSON.stringify(Array.from(this.holidaysCache)));
+      localStorage.setItem(this.legacyReservationKey, JSON.stringify(this.reservationsCache));
+      localStorage.setItem(this.legacyStaffKey, JSON.stringify(this.staffCache));
+      localStorage.setItem(this.legacyGridBlocksKey, JSON.stringify(this.gridBlocksCache));
+    } catch (e) {
+      backupResult.ok = false;
+      backupResult.errors.push(e.message);
+      console.error('[Database] バックアップ実行エラー:', e);
+    }
+
+    console.log('[Database] バックアップ完了:', backupResult);
+    return backupResult;
+  }
+
   // フォールバック読み込み
   loadFromFallbackStorage() {
     try {

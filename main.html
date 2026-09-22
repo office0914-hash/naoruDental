@@ -66,6 +66,40 @@
       <button type="button" id="btnHolidaySettings" class="settings-btn">
         📅 休診日 設定
       </button>
+
+      <!-- 右下角：電源ボタン（正方形・稼働中はライムネオン発光） -->
+      <button type="button" id="btnSystemPower" class="power-btn is-running" title="システム終了" aria-label="システム電源">
+        <svg class="power-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+          <line x1="12" y1="2" x2="12" y2="12"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- システム終了確認 & 進捗オーバーレイ -->
+  <div id="shutdownOverlay" class="shutdown-overlay" role="dialog" aria-modal="true">
+    <div class="shutdown-card">
+      <div class="shutdown-icon-wrap" id="shutdownIconWrap">🔌</div>
+      <div class="shutdown-title" id="shutdownTitle">システムを終了しています</div>
+      <div class="shutdown-step-list" id="shutdownStepList">
+        <div class="shutdown-step step-running" id="stepIntegrity">
+          <span class="shutdown-step-icon">🔄</span>
+          <span class="shutdown-step-text">データベースの損傷・整合性を検証中...</span>
+        </div>
+        <div class="shutdown-step" id="stepBackup">
+          <span class="shutdown-step-icon">⏳</span>
+          <span class="shutdown-step-text">データベースのバックアップ保存を準備中...</span>
+        </div>
+        <div class="shutdown-step" id="stepShutdown">
+          <span class="shutdown-step-icon">⏳</span>
+          <span class="shutdown-step-text">システムの安全終了処理...</span>
+        </div>
+      </div>
+      <div class="shutdown-btn-row" id="shutdownBtnRow" style="display: none;">
+        <button type="button" class="shutdown-btn-close" id="btnFinalClose">ウィンドウを閉じる</button>
+        <button type="button" class="shutdown-btn-restart" id="btnRestartSystem">再開する</button>
+      </div>
     </div>
   </div>
 

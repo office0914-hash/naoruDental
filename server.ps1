@@ -93,6 +93,52 @@ try {
             continue
         }
 
+        # 1.5. データベース バックアップ API (/api/backup)
+        if ($localPath -eq 'api/backup') {
+            $dbFilePath = Join-Path $baseDir "naoru_dental.db"
+            $backupDir = Join-Path $baseDir "backups"
+            if (-not (Test-Path $backupDir)) {
+                New-Item -ItemType Directory -Path $backupDir | Out-Null
+            }
+            $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+            $tsBackupPath = Join-Path $backupDir "naoru_dental_$timestamp.db"
+            $latestBakPath = Join-Path $baseDir "naoru_dental.db.bak"
+            
+            if (Test-Path $dbFilePath) {
+                Copy-Item -Path $dbFilePath -Destination $tsBackupPath -Force
+                Copy-Item -Path $dbFilePath -Destination $latestBakPath -Force
+                $response.StatusCode = 200
+                $msgBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"ok","backup":"' + (Split-Path $tsBackupPath -Leaf) + '"}')
+            } else {
+                $response.StatusCode = 200
+                $msgBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"ok","message":"No physical file yet"}')
+            }
+            $response.ContentType = "application/json; charset=utf-8"
+            $response.OutputStream.Write($msgBytes, 0, $msgBytes.Length)
+            $response.Close()
+            continue
+        }
+
+        # 1.6. システム終了・ウィンドウ終了 API (/api/system/close)
+        if ($localPath -eq 'api/system/close') {
+            $response.StatusCode = 200
+            $msgBytes = [System.Text.Encoding]::UTF8.GetBytes('{"status":"ok","message":"closing"}')
+            $response.ContentType = "application/json; charset=utf-8"
+            $response.OutputStream.Write($msgBytes, 0, $msgBytes.Length)
+            $response.Close()
+
+            Start-Job -ScriptBlock {
+                Start-Sleep -Milliseconds 200
+                $procs = Get-Process -Name chrome, msedge, brave -ErrorAction SilentlyContinue | Where-Object {
+                    $_.MainWindowTitle -like "*なおる歯科*" -or $_.MainWindowTitle -like "*Naoru*"
+                }
+                foreach ($p in $procs) {
+                    $p.CloseMainWindow() | Out-Null
+                }
+            } | Out-Null
+            continue
+        }
+
         # 2. 静的ファイル配信
         if ([string]::IsNullOrEmpty($localPath) -or $localPath -eq '/') {
             $localPath = "main.html"
