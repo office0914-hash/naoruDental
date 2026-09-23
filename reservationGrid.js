@@ -346,8 +346,10 @@ class ReservationGrid {
     if (hasPrevSame) tdSlot.classList.add('booked-continuation');
     if (hasNextSame) tdSlot.classList.add('booked-has-next');
 
-    const groupId = booking.group_id || `${booking.chart_no || booking.patient_name || 'booking'}_${dateStr}_col${colIndex}`;
+    const startBlockTime = this._findBlockStartTime(booking, rowIndex, colIndex, dayReservations);
+    const groupId = booking.group_id || `${booking.chart_no || booking.patient_name || 'booking'}_${dateStr}_col${colIndex}_${startBlockTime}`;
     tdSlot.dataset.bookingGroup = groupId;
+    tdSlot.dataset.chartNo = booking.chart_no ? String(booking.chart_no).trim() : '';
 
     // パイロットグリッドにキープ中の元予約であれば点線ボーダーを付与
     if (window.pilotGridManager && window.pilotGridManager.hasBooking()) {
@@ -357,14 +359,33 @@ class ReservationGrid {
       }
     }
 
-    // ホバー連動イベント
+    // ホバー連動イベント（同一予約ブロックの強調 ＋ 同一カルテNoの別枠予約ハイライト）
     tdSlot.addEventListener('mouseenter', () => {
-      const groupCells = this.container.querySelectorAll(`[data-booking-group="${groupId}"]`);
+      // 1. 自身の予約グループセル（連続枠）をホバー強調
+      const escapedGroupId = (window.CSS && typeof window.CSS.escape === 'function') ? CSS.escape(groupId) : groupId;
+      const groupCells = this.container.querySelectorAll(`[data-booking-group="${escapedGroupId}"]`);
       groupCells.forEach(cell => cell.classList.add('booked-hover'));
+
+      // 2. 同一カルテ番号（chart_no）の別枠予約をハイライト（同姓同名除外・カルテ番号一致のみ）
+      const currentChartNo = tdSlot.dataset.chartNo;
+      if (currentChartNo) {
+        const escapedChartNo = (window.CSS && typeof window.CSS.escape === 'function') ? CSS.escape(currentChartNo) : currentChartNo;
+        const samePatientCells = this.container.querySelectorAll(`.grid-slot-cell.booked[data-chart-no="${escapedChartNo}"]`);
+        samePatientCells.forEach(cell => {
+          if (cell.dataset.bookingGroup !== groupId) {
+            cell.classList.add('booked-same-patient-hover');
+          }
+        });
+      }
     });
+
     tdSlot.addEventListener('mouseleave', () => {
-      const groupCells = this.container.querySelectorAll(`[data-booking-group="${groupId}"]`);
+      const escapedGroupId = (window.CSS && typeof window.CSS.escape === 'function') ? CSS.escape(groupId) : groupId;
+      const groupCells = this.container.querySelectorAll(`[data-booking-group="${escapedGroupId}"]`);
       groupCells.forEach(cell => cell.classList.remove('booked-hover'));
+
+      const samePatientCells = this.container.querySelectorAll('.grid-slot-cell.booked-same-patient-hover');
+      samePatientCells.forEach(cell => cell.classList.remove('booked-same-patient-hover'));
     });
 
     const chartNoText = booking.chart_no ? `${booking.chart_no} ` : '';
@@ -401,6 +422,24 @@ class ReservationGrid {
       hasPrevSame: Boolean(prevBooking && isSameBooking(booking, prevBooking)),
       hasNextSame: Boolean(nextBooking && isSameBooking(booking, nextBooking))
     };
+  }
+
+  _findBlockStartTime(booking, rowIndex, colIndex, dayReservations) {
+    const isSameBooking = (b1, b2) => {
+      if (!b1 || !b2) return false;
+      return (b1.chart_no && b2.chart_no === b1.chart_no) || (b1.patient_name && b2.patient_name === b1.patient_name);
+    };
+    let startIdx = rowIndex;
+    while (startIdx > 0) {
+      const prevTime = this.timeSlots[startIdx - 1];
+      const prevBooking = prevTime ? dayReservations.find(r => r.time === prevTime && (r.unit === this.columns[colIndex].label || r.chairIndex === colIndex)) : null;
+      if (prevBooking && isSameBooking(booking, prevBooking)) {
+        startIdx--;
+      } else {
+        break;
+      }
+    }
+    return this.timeSlots[startIdx] || this.timeSlots[rowIndex] || '09:00';
   }
 
   _buildPatientCardHtml(booking, patientNameText, treatmentText) {

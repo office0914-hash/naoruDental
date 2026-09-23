@@ -2,6 +2,12 @@
 // Main System Script (main.js)
 // -------------------------------------------
 
+// テンプレートリテラル構文ハイライト用安全化ヘルパー (VS Code等のhtml/css色分け用)
+var html = String.raw;
+var css = String.raw;
+window.html = String.raw;
+window.css = String.raw;
+
 // 右クリック禁止
 document.addEventListener('contextmenu', e => e.preventDefault());
 

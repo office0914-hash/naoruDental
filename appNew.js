@@ -2,7 +2,6 @@
 // New Appointment Modal Manager (appNew.js)
 // なおる歯科 - 新規予約登録モーダル & 患者検索サジェスト
 // -------------------------------------------
-const html = String.raw;
 
 class AppointmentModal {
   constructor() {
@@ -129,6 +128,9 @@ class AppointmentModal {
             <span class="slot-badge time-badge" id="appModalSlotTime">--:--</span>
             <span class="slot-badge unit-badge" id="appModalSlotUnit">ユニット</span>
           </div>
+
+          <!-- 同日重複予約 警告通知バッジ -->
+          <div class="duplicate-booking-notice" id="duplicateBookingNotice" style="display: none;"></div>
           <!-- 患者情報 入力行 -->
           <div class="patient-form-row">
             <div class="form-group form-group-chartno">
@@ -196,6 +198,7 @@ class AppointmentModal {
     this.slotTimeEl = document.getElementById('appModalSlotTime');
     this.slotUnitEl = document.getElementById('appModalSlotUnit');
     this.patientMetaEl = document.getElementById('patientCardMeta');
+    this.duplicateNoticeEl = document.getElementById('duplicateBookingNotice');
 
     this.candidatesWrapper = document.getElementById('patientCandidatesWrapper');
     this.candidatesList = document.getElementById('patientCandidatesList');
@@ -385,12 +388,18 @@ class AppointmentModal {
 
   showCandidates() {
     if (this.candidatesWrapper) this.candidatesWrapper.style.display = 'block';
+    if (this.targetElement) {
+      requestAnimationFrame(() => this.positionNearElement(this.targetElement));
+    }
   }
 
   hideCandidates() {
     if (this.candidatesWrapper) {
       this.candidatesWrapper.style.display = 'none';
       this.activeCandidateIndex = -1;
+      if (this.targetElement) {
+        requestAnimationFrame(() => this.positionNearElement(this.targetElement));
+      }
     }
   }
 
@@ -486,6 +495,13 @@ class AppointmentModal {
       this.patientMetaEl.style.display = 'inline-block';
     }
 
+    // 同一カルテ番号の同日既存予約チェック＆告知
+    if (patient.chartNo) {
+      this._checkDuplicateBooking(patient.chartNo);
+    } else {
+      this._checkDuplicateBooking(null);
+    }
+
     this.hideCandidates();
 
     if (moveFocus) {
@@ -517,7 +533,65 @@ class AppointmentModal {
       this.patientMetaEl.textContent = '';
       this.patientMetaEl.style.display = 'none';
     }
+    this._checkDuplicateBooking(null);
     this.hideCandidates();
+  }
+
+  _checkDuplicateBooking(chartNo) {
+    if (!this.duplicateNoticeEl) return;
+    if (!chartNo || !this.currentDateStr || !window.dbManager) {
+      this.duplicateNoticeEl.style.display = 'none';
+      return;
+    }
+
+    const cleanChartNo = String(chartNo).trim();
+    if (!cleanChartNo) {
+      this.duplicateNoticeEl.style.display = 'none';
+      return;
+    }
+
+    let dayReservations = [];
+    if (window.reservationGrid && typeof window.reservationGrid.getReservationsForDate === 'function') {
+      dayReservations = window.reservationGrid.getReservationsForDate(this.currentDateStr) || [];
+    } else if (window.dbManager && typeof window.dbManager.getReservations === 'function') {
+      const all = window.dbManager.getReservations() || [];
+      dayReservations = all.filter(r => r.date === this.currentDateStr);
+    }
+    const held = (window.pilotGridManager && window.pilotGridManager.hasBooking()) ? window.pilotGridManager.heldBooking : null;
+
+    // 現在日時変更でキープ中の予約（held）以外の同日予約をカルテ番号一致で検索
+    const existing = dayReservations.filter(r => {
+      const rChart = r.chart_no || r.chartNo || '';
+      const matchChart = rChart && String(rChart).trim() === cleanChartNo;
+      if (!matchChart) return false;
+
+      // 日時変更（move）中の元予約は重複対象外
+      if (held && held.mode === 'move' && held.date === this.currentDateStr) {
+        if (held.groupId && r.group_id === held.groupId) return false;
+        if (held.time === r.time && (held.unit === r.unit || held.unit === r.chair)) return false;
+      }
+      return true;
+    });
+
+    if (existing.length > 0) {
+      const timeUnits = Array.from(new Set(existing.map(r => `${r.time || ''} (${r.unit || 'チェア'})`))).join('、');
+      this.duplicateNoticeEl.innerHTML = `
+        <span class="duplicate-notice-icon">⚠️</span>
+        <div class="duplicate-notice-content">
+          <span class="duplicate-notice-title">同日予約あり</span>
+          <span class="duplicate-notice-desc">カルテNo.<strong>${cleanChartNo}</strong> の方は、本日 <strong>${timeUnits}</strong> に既に予約があります。</span>
+        </div>
+      `;
+      this.duplicateNoticeEl.style.display = 'flex';
+    } else {
+      this.duplicateNoticeEl.style.display = 'none';
+    }
+
+    if (this.targetElement) {
+      requestAnimationFrame(() => {
+        this.positionNearElement(this.targetElement);
+      });
+    }
   }
 
   // -------------------------------------------
@@ -1156,11 +1230,17 @@ class AppointmentEditModal {
     });
 
     this.candidatesWrapper.style.display = 'block';
+    if (this.targetElement) {
+      requestAnimationFrame(() => this.positionNearElement(this.targetElement));
+    }
   }
 
   hideCandidates() {
     if (this.candidatesWrapper) {
       this.candidatesWrapper.style.display = 'none';
+      if (this.targetElement) {
+        requestAnimationFrame(() => this.positionNearElement(this.targetElement));
+      }
     }
     this.currentCandidates = [];
     this.activeCandidateIndex = -1;

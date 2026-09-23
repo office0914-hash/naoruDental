@@ -325,6 +325,24 @@
   border-left-color: #15803d;
 }
 
+/* 同一カルテ番号（同日別予約）の連動ハイライト（別時間・別チェアの同一患者告知） */
+.grid-table td.grid-slot-cell.booked.booked-same-patient-hover::before {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+  border: 2px dashed #0284c7 !important;
+  border-left: 4px solid #0284c7 !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.55) !important;
+  animation: samePatientPulse 1.6s infinite ease-in-out;
+}
+
+@keyframes samePatientPulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(2, 132, 199, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(2, 132, 199, 0.75);
+  }
+}
+
 /* 新規予約操作中：パイロットグリッドにキープされた元セルの点線ボーダー */
 .grid-table td.grid-slot-cell.card-source-dotted::before {
   border: 2px dashed #0284c7 !important;
@@ -382,6 +400,9 @@
   overflow: hidden;
   box-sizing: border-box;
   z-index: 2;
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
 }
 
 .booked-chart-col {

@@ -52,7 +52,7 @@ class LeftClickActions {
     const menu = document.createElement('div');
     menu.id = 'lcaPopupMenu';
     menu.className = 'lca-popup-menu';
-    menu.innerHTML = `
+    menu.innerHTML = html`
       <div class="lca-menu-header" id="lcaMenuHeader">
         <div class="lca-header-patient">
           <span class="lca-header-chart" id="lcaHeaderChart">No.---</span>
@@ -109,7 +109,7 @@ class LeftClickActions {
     const modalOverlay = document.createElement('div');
     modalOverlay.id = 'lcaCancelModalOverlay';
     modalOverlay.className = 'lca-cancel-modal-overlay';
-    modalOverlay.innerHTML = `
+    modalOverlay.innerHTML = html`
       <div class="lca-cancel-modal-container" role="dialog" aria-modal="true">
         <div class="lca-cancel-modal-header">
           <div class="lca-cancel-icon-circle">✕</div>
@@ -264,9 +264,8 @@ class LeftClickActions {
 
   positionMenu(cellEl, mouseX, mouseY) {
     const rect = cellEl.getBoundingClientRect();
-    const menuWidth = 230;
-    const menuHeight = 240;
-
+    const menuWidth = this.menuEl.offsetWidth || 230;
+    const menuHeight = this.menuEl.offsetHeight || 310;
     let posX = rect.right + 6;
     let posY = rect.top;
 
@@ -524,7 +523,7 @@ class LeftClickActions {
             const allRes = window.dbManager.getReservations() || [];
             const slotTimes = targetCells.map(c => c.dataset.time).filter(Boolean);
 
-            itemsToDelete = allRes.filter(r => 
+            itemsToDelete = allRes.filter(r =>
               r.date === data.date &&
               (slotTimes.includes(r.time) || (data.groupId && r.group_id === data.groupId)) &&
               (r.unit === data.unit || !data.unit)
@@ -557,7 +556,7 @@ class LeftClickActions {
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'lcaFeedbackToast';
-      toast.style.cssText = `
+      toast.style.cssText = css`
         position: fixed;
         bottom: 24px;
         right: 24px;

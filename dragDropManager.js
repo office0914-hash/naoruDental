@@ -144,6 +144,17 @@ class DragDropManager {
     });
   }
 
+  _getGroupCells(container, bookingGroup) {
+    if (!container || !bookingGroup) return [];
+    try {
+      if (window.CSS && typeof window.CSS.escape === 'function') {
+        const cells = Array.from(container.querySelectorAll(`[data-booking-group="${CSS.escape(bookingGroup)}"]`));
+        if (cells.length) return cells;
+      }
+    } catch (err) { }
+    return Array.from(container.querySelectorAll('.grid-slot-cell')).filter(c => c.dataset.bookingGroup === bookingGroup);
+  }
+
   // -------------------------------------------
   // 3. ドラッグ開始 (dragstart)
   // -------------------------------------------
@@ -153,8 +164,9 @@ class DragDropManager {
     const colIndex = parseInt(slotEl.dataset.col, 10);
     const unitLabel = slotEl.dataset.unit;
     const container = document.getElementById('reservationGrid');
+    if (!container) return;
 
-    const groupCells = Array.from(container.querySelectorAll(`[data-booking-group="${bookingGroup}"]`));
+    const groupCells = this._getGroupCells(container, bookingGroup);
     if (!groupCells.length) return;
 
     groupCells.sort((a, b) => parseInt(a.dataset.row, 10) - parseInt(b.dataset.row, 10));
@@ -163,7 +175,7 @@ class DragDropManager {
     const rowSpan = groupCells.length;
     const slotTimes = groupCells.map(c => c.dataset.time);
 
-    const bookingItems = dayReservations.filter(r => 
+    const bookingItems = dayReservations.filter(r =>
       slotTimes.includes(r.time) && (r.unit === unitLabel || r.chairIndex === colIndex)
     );
 
@@ -195,7 +207,7 @@ class DragDropManager {
       if (groupCells[0]) {
         try {
           e.dataTransfer.setDragImage(groupCells[0], 20, 20);
-        } catch (err) {}
+        } catch (err) { }
       }
     }
 
@@ -275,14 +287,14 @@ class DragDropManager {
         };
       }
       if (isSingleMatchingGroup && targetBookingGroup) {
-        const opponentCells = Array.from(container.querySelectorAll(`[data-booking-group="${targetBookingGroup}"]`));
+        const opponentCells = this._getGroupCells(container, targetBookingGroup);
         opponentCells.sort((a, b) => parseInt(a.dataset.row, 10) - parseInt(b.dataset.row, 10));
         const opponentStartRow = parseInt(opponentCells[0].dataset.row, 10);
         const opponentRowSpan = opponentCells.length;
 
         if (opponentStartRow === startRow && opponentRowSpan === rowSpan) {
           const oppSlotTimes = opponentCells.map(c => c.dataset.time);
-          const targetBookingItems = dayReservations.filter(r => 
+          const targetBookingItems = dayReservations.filter(r =>
             oppSlotTimes.includes(r.time) && (r.unit === targetUnit || r.chairIndex === targetCol)
           );
           return {
